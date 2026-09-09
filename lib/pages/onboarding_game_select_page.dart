@@ -15,9 +15,9 @@ class _OnboardingGameSelectPageState extends State<OnboardingGameSelectPage> {
     ['메이플스토리', 'RPG'],
     ['로스트아크', 'RPG'],
     ['명조', '모바일 게임'],
-  ];
+  ]; //임시
 
-  final List<bool> isCheckeds = [false, false,false];
+  final List<bool> isCheckeds = [false, false,false]; //임시
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +94,11 @@ class _OnboardingGameSelectPageState extends State<OnboardingGameSelectPage> {
                           value: isCheckeds[index],
                           onChanged: (isChecked) {
                             setState(() {
-                              isCheckeds[index] = isChecked!;
+                              bool check=true;
+                              for(int i=0;i<isCheckeds.length;i++){
+                                if(isCheckeds[i]==true) check=false;
+                              }
+                              if(check||isCheckeds[index]==true) isCheckeds[index] = isChecked!;
                             });
                           },
                           shape: const CircleBorder(),
@@ -118,7 +122,7 @@ class _OnboardingGameSelectPageState extends State<OnboardingGameSelectPage> {
               },
             ),
             CustomButton(
-              customText: '내가 하는 게임이 없어요, 넘어갈게요.',
+              customText: '내가 하는 게임이 없어요, 넘어갈게요',
               backgroundColors: Colors.white,
               fontStyle: textTheme.bodyMedium!.copyWith(
                 color: colorScheme.primary,

@@ -11,11 +11,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
     return AppBar(
-      title: Text(title,style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),),
       leading: IconButton(
         icon: Icon(Icons.arrow_back_ios_new),
         onPressed: () => context.pop(),
       ),
+      title: Text(title,style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),),
       actions: actions,
       actionsPadding: EdgeInsets.only(right: 20),
     );

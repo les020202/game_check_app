@@ -12,6 +12,8 @@ class CustomDottedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    TextTheme textTheme = Theme.of(context).textTheme;
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: DottedBorder(
@@ -19,7 +21,7 @@ class CustomDottedButton extends StatelessWidget {
           dashPattern: [6, 3],
           strokeWidth: 1.5,
           radius: Radius.circular(12),
-          color: Colors.blue,
+          color: colorScheme.primary,
           padding: EdgeInsets.zero, 
         ),
         child: SizedBox(
@@ -34,7 +36,10 @@ class CustomDottedButton extends StatelessWidget {
               ),
               side: BorderSide.none,
             ),
-            child: Text(customText)
+            child: Text(customText,style: textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colorScheme.primary,
+            ),)
           ),
         ),
       ),

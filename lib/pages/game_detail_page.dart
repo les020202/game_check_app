@@ -128,6 +128,9 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+                    onDaySelected: (selectedDay, focusedDay) {
+                      context.go('/game_main_page/game_detail_page/game_detail_week_page');
+                    },
                   ),
                 ),
                 SizedBox(height: 12),

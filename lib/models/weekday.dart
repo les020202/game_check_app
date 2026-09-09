@@ -10,4 +10,7 @@ enum Weekday {
   final int value;
   final String label;
   const Weekday(this.value, this.label);
+  
+  static Weekday fromValue(int value) =>
+      Weekday.values.firstWhere((w) => w.value == value);
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '/widgets/custom_app_bar.dart';
 import '../models/game.dart';
 import '../models/weekday.dart';
 import '../widgets/custom_dotted_button.dart';
@@ -52,23 +54,20 @@ class GameMainPage extends StatelessWidget {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('내 게임',style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+        actions: [
+          IconButton(
+            onPressed: () {
+              context.go('/game_main_page/game_detail_page');
+            },
+            icon: Icon(Icons.notifications_outlined, size: 30),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: ListView(
           children: [
-            ListTile(
-              leading: Text(
-                '내 게임',
-                style: textTheme.headlineLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              trailing: IconButton(
-                onPressed: () {
-                  context.go('/game_main_page/game_detail_page');
-                },
-                icon: Icon(Icons.notifications_outlined, size: 30),
-              ),
-            ),
             ...GameListTile(context, textTheme, colorScheme, dummyGames.length),
             CustomDottedButton(
               customText: '+ 게임 추가',
@@ -89,9 +88,20 @@ class GameMainPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(children: [Icon(Icons.error_outline), Text(' 표시 방식 안내')]),
-                  Text('● RPG(멀티 캐릭터형) : 완료 캐릭터 수 / 전체 캐릭터 수 \n(예: 3/4 완료)'),
-                  Text('● 모바일 게임(단일 계정형) : 완료 / 미완료'),
+                  Row(
+                    children: 
+                      [
+                        Icon(Icons.error_outline), Text(' 표시 방식 안내'
+                          ,style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400,),
+                        ),
+                      ]
+                  ),
+                  Text('● RPG(멀티 캐릭터형) : 완료 캐릭터 수 / 전체 캐릭터 수 \n(예: 3/4 완료)'
+                    ,style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400,),
+                  ),
+                  Text('● 모바일 게임(단일 계정형) : 완료 / 미완료'
+                    ,style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400,),
+                  ),
                 ],
               ),
             ),
@@ -146,6 +156,7 @@ class GameMainPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '${dummyGames[i].name}',
@@ -159,7 +170,10 @@ class GameMainPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                QuestProgressBadge(textTheme: textTheme, colorScheme: colorScheme),
+                QuestProgressBadge(
+                  textTheme: textTheme,
+                  colorScheme: colorScheme,
+                ),
               ],
             ),
             trailing: IconButton(

@@ -13,9 +13,9 @@ class _OnboardingGameTypePageState extends State<OnboardingGameTypePage> {
   final List<List<String>> gameTypeList = [
     ['RPG', '여러 캐릭터로 육성하는 게임'],
     ['모바일 게임', '계정 하나로 플레이하는 게임'],
-  ];
+  ]; //임시
 
-  final List<bool> isCheckeds = [false, false];
+  final List<bool> isCheckeds = [false, false]; //임시
 
   @override
   Widget build(BuildContext context) {

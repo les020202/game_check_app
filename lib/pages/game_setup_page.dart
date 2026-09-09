@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../widgets/custom_app_bar.dart';
+import '../widgets/custom_button.dart';
 import '../widgets/custom_dotted_button.dart';
 
 class GameSetupPage extends StatefulWidget {
@@ -99,7 +100,9 @@ class _GameSetupPageState extends State<GameSetupPage> {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                Text('캐릭터 여러 개', style: textTheme.bodyMedium),
+                                Text('캐릭터 여러 개', style: textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w400,
+                                )),
                               ],
                             ),
                           ),
@@ -124,7 +127,12 @@ class _GameSetupPageState extends State<GameSetupPage> {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                Text('계정 1개', style: textTheme.bodyMedium),
+                                Text(
+                                  '계정 1개', 
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -244,7 +252,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         Text(
                           '주간 퀘스트',
                           style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w400,
+                            fontWeight: FontWeight.w700,
                             color: Colors.grey.shade800,
                           ),
                         ),
@@ -258,7 +266,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         Text(
                           '월간 퀘스트',
                           style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w400,
+                            fontWeight: FontWeight.w700,
                             color: Colors.grey.shade800,
                           ),
                         ),
@@ -272,7 +280,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         Text(
                           '목표',
                           style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w400,
+                            fontWeight: FontWeight.w700,
                             color: Colors.grey.shade800,
                           ),
                         ),
@@ -287,22 +295,17 @@ class _GameSetupPageState extends State<GameSetupPage> {
                     ),
                   ),
                   SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.go('/game_main_page/game_detail_page');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0,
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        side: BorderSide.none,
-                      ),
-                      child: Text('설정 완료'),
+                  CustomButton(
+                    customText: '설정 완료',
+                    backgroundColors: Colors.white,
+                    fontStyle: textTheme.bodyMedium!.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.primary,
                     ),
+                    onPressed: (){
+                      context.go('/game_main_page/game_detail_page');
+                    },
+                    borderSide: BorderSide(color: colorScheme.primary,),
                   ),
                 ],
               ),
