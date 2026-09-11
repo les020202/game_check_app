@@ -15,7 +15,6 @@ class ResetPasswordPage extends StatelessWidget {
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: CustomAppBar(title: '비밀번호 변경'),
       body: SafeArea(

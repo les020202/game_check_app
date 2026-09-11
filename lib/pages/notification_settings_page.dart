@@ -15,7 +15,8 @@ class NotificationSettingsPage extends StatefulWidget {
 
 class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   bool isOn = false; //임시
-  bool isChecked = false; //임시
+  List<bool> isCheckeds = [false, false]; //임시
+  List<String> games = ['메이플스토리', '로스트아크'];
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -101,33 +102,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                 ),
               ),
               SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: isChecked ? Colors.blue.shade50 : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isChecked ? colorScheme.primary : Colors.white,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Checkbox(
-                      value: isChecked,
-                      onChanged: (value) {
-                        setState(() {
-                          isChecked = value!;
-                        });
-                      },
-                    ),
-                    Text(
-                      '메이플스토리',
-                      style: textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              ...getGameList(colorScheme, textTheme,isCheckeds,games),
               SizedBox(height: 24),
               Text(
                 '알림 시간 설정  (직접 스크롤해서 설정)',
@@ -185,8 +160,8 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
               ),
               SizedBox(height: 24),
               CustomDottedButton(
-                customText: '알림 추가하기', 
-                onPressed: (){
+                customText: '알림 추가하기',
+                onPressed: () {
                   setState(() {
                     //알림 추가 로직
                   });
@@ -197,5 +172,46 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
         ),
       ),
     );
+  }
+
+  List<Container> getGameList(
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+    List<bool> isCheckeds,
+    List<String> games,
+  ) {
+    List<Container> gameList = [];
+    for (int i = 0; i < isCheckeds.length; i++) {
+      gameList.add(
+        Container(
+          decoration: BoxDecoration(
+            color: isCheckeds[i] ? Colors.blue.shade50 : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isCheckeds[i] ? colorScheme.primary : Colors.white,
+            ),
+          ),
+          child: Row(
+            children: [
+              Checkbox(
+                value: isCheckeds[i],
+                onChanged: (value) {
+                  setState(() {
+                    isCheckeds[i] = value!;
+                  });
+                },
+              ),
+              Text(
+                '${games[i]}',
+                style: textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return gameList;
   }
 }

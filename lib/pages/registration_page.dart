@@ -54,7 +54,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(color: Colors.grey),
                       ),
-                      
                       floatingLabelBehavior: FloatingLabelBehavior.always,
                     ),
                   ),

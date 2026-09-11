@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'pages/customer_service_page.dart';
+import 'pages/faq_page.dart';
 import 'pages/game_detail_page.dart';
 import 'pages/game_detail_week_page.dart';
 import 'pages/game_main_page.dart';
 import 'pages/game_setup_page.dart';
+import 'pages/inquiry_form_page.dart';
 import 'pages/landing_page.dart';
 import 'pages/login_page.dart';
 import 'pages/mail_check_page.dart';
@@ -14,6 +17,8 @@ import 'pages/onboarding_game_preset_page.dart';
 import 'pages/onboarding_game_select_page.dart';
 import 'pages/registration_page.dart';
 import 'pages/reset_password_page.dart';
+import 'pages/terms_detail_page.dart';
+import 'pages/terms_settings_page.dart';
 import 'pages/workout_shell.dart';
 import 'pages/onboarding_game_type_page.dart';
 
@@ -106,6 +111,30 @@ final GoRouter router = GoRouter(
                 GoRoute(
                   path: 'notification_settings_page',
                   builder: (context, state) => NotificationSettingsPage(),
+                ),
+                GoRoute(
+                  path: 'faq_page',
+                  builder: (context, state) => FaqPage(),
+                ),
+                GoRoute(
+                  path: 'customer_service_page',
+                  builder: (context, state) => CustomerServicePage(),
+                  routes: [
+                    GoRoute(
+                      path: 'inquiry_form_page',
+                      builder: (context, state) => InquiryFormPage(),
+                    ),
+                  ],
+                ),
+                GoRoute(
+                  path: 'terms_settings_page',
+                  builder: (context, state) => TermsSettingsPage(),
+                  routes: [
+                    GoRoute(
+                      path: 'terms_detail_page',
+                      builder: (context, state) => TermsDetailPage(),
+                    ),
+                  ],
                 ),
               ],
             ),

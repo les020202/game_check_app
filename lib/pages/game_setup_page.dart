@@ -23,7 +23,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
   final dailyQuestList = ['일일 퀘스트', '몬스터 파크']; //임시
   final weeklyQuestList = ['스우(하드)', '데미안(하드)']; //임시
   final monthlyQuestList = ['검은 마법사(하드)']; //임시
-  final targetQuestList = ['자석펫 구매'];
+  final targetQuestList = ['자석펫 구매']; //임시
 
   int weekSelectedIndex = 0;
   int chracterSelectedIndex = 0;

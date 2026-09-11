@@ -115,6 +115,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                     lastDay: DateTime(DateTime.now().year + 1, 12, 31),
                     focusedDay: _focusedDay,
                     calendarFormat: CalendarFormat.month,
+                    availableGestures: AvailableGestures.none,
                     onPageChanged: (newFocusedDay) {
                       setState(() {
                         _focusedDay = newFocusedDay;
@@ -254,6 +255,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                       SizedBox(height: 12),
                       GridView.builder(
                         shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
                         itemCount: weeklyQuestList.length,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
@@ -356,6 +358,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
       ),
       child: ListView.separated(
         shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
         itemCount: QuestList.length,
         itemBuilder: (context, index) {
           final quest = QuestList[index];
