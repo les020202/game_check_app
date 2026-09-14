@@ -1,0 +1,1 @@
+enum QuestCategory { weekly, monthly, goal }

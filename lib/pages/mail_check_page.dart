@@ -15,77 +15,79 @@ class MailCheckPage extends StatelessWidget {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: CustomAppBar(title: '재설정 메일 체크'),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsetsGeometry.all(20.0),
-          child: SizedBox(
-            width: double.infinity,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  height: 50,
-                  width: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50, 
-                    shape: BoxShape.circle
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsetsGeometry.all(20.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    height: 50,
+                    width: 50,
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50, 
+                      shape: BoxShape.circle
+                    ),
+                    child: Icon(Icons.check,color: Colors.green,)
                   ),
-                  child: Icon(Icons.check,color: Colors.green,)
-                ),
-                SizedBox(height: 12,),
-                Text(
-                  '메일을 보냈어요',
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  'example@example.com 주소로\n재설정 링크를 발송했어요',
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                SizedBox(height: 24),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    children: [
-                      ...getMailGuide(textTheme,colorScheme, guides),
-                      Divider(),
-                      Text(
-                        '* 링크는 보안을 위해 일정 시간 후에 만료돼요',
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w400,
-                          color: Colors.grey.shade500
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 24,),
-                Text(
-                  '메일이 오지 않았나요?',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                TextButton(
-                  onPressed: (){
-                    //재발송 로직
-                  },
-                  child: Text(
-                    '재발송 요청하기',
-                    style: textTheme.bodyLarge?.copyWith(
+                  SizedBox(height: 12,),
+                  Text(
+                    '메일을 보냈어요',
+                    style: textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: colorScheme.primary,
                     ),
                   ),
-                ),
-              ],
+                  Text(
+                    'example@example.com 주소로\n재설정 링크를 발송했어요',
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      children: [
+                        ...getMailGuide(textTheme,colorScheme, guides),
+                        Divider(),
+                        Text(
+                          '* 링크는 보안을 위해 일정 시간 후에 만료돼요',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w400,
+                            color: Colors.grey.shade500
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 24,),
+                  Text(
+                    '메일이 오지 않았나요?',
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: (){
+                      //재발송 로직
+                    },
+                    child: Text(
+                      '재발송 요청하기',
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

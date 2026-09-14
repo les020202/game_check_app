@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.light,
         fontFamily: 'Pretendard',
-        scaffoldBackgroundColor: Colors.grey.shade100,
+        scaffoldBackgroundColor: Colors.grey.shade200,
         colorScheme: ColorScheme.fromSeed(
           seedColor: Color(0xff006EFF),
           primary: Color(0xff006EFF),

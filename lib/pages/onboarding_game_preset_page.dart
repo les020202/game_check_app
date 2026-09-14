@@ -30,72 +30,80 @@ class OnboardingGamePresetPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
-            ClipRRect(
-              child: LinearProgressIndicator(
-                value: 2 / 3,
-                backgroundColor: Colors.grey,
-                color: Colors.blue,
-              ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              '즐겨하는 게임을\n하나 골라주세요',
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.white,
-                border: Border.all(color: Colors.grey),
-              ),
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: gamePresetList.length,
-                itemBuilder: (context, index) {
-                  final gamePreset = gamePresetList[index];
-                  return Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${gamePreset[0]}',
-                              style: textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: colorScheme.primary,
-                              ),
-                            ),
-                            SizedBox(height: 6,),
-                            for (int i = 1; i < gamePreset.length; i++)
-                              Text(
-                                '● ${gamePreset[i]}',
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      child: LinearProgressIndicator(
+                        value: 2 / 3,
+                        backgroundColor: Colors.grey,
+                        color: Colors.blue,
+                      ),
                     ),
-                  );
-                },
-                separatorBuilder: (context, index) {
-                  return const Divider();
-                },
+                    SizedBox(height: 12),
+                    Text(
+                      '즐겨하는 게임을\n하나 골라주세요',
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey),
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: gamePresetList.length,
+                        itemBuilder: (context, index) {
+                          final gamePreset = gamePresetList[index];
+                          return Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '${gamePreset[0]}',
+                                      style: textTheme.bodyLarge?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                    SizedBox(height: 6),
+                                    for (int i = 1; i < gamePreset.length; i++)
+                                      Text(
+                                        '● ${gamePreset[i]}',
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        separatorBuilder: (context, index) {
+                          return const Divider();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            Spacer(),
             CustomButton(
               customText: '이 프리셋 사용하기',
               backgroundColors: colorScheme.primary,
@@ -104,9 +112,7 @@ class OnboardingGamePresetPage extends StatelessWidget {
                 fontWeight: FontWeight.w400,
               ),
               onPressed: () {
-                context.go(
-                  '/game_main_page',
-                );
+                context.go('/game_main_page');
               },
             ),
             CustomButton(
@@ -120,21 +126,24 @@ class OnboardingGamePresetPage extends StatelessWidget {
               onPressed: () {
                 context.go('/game_main_page/game_setup_page');
               },
-            ),        
+            ),
             SizedBox(
               width: double.infinity,
               child: TextButton(
-                onPressed: (){
+                onPressed: () {
                   context.go('/game_main_page');
-                }, 
-                child: Text('사용하지 않고 시작할게요',style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w400,
-                  color: Colors.grey.shade700,
-                  decoration: TextDecoration.underline,
-                ),),
+                },
+                child: Text(
+                  '사용하지 않고 시작할게요',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey.shade700,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 20),
           ],
         ),
       ),

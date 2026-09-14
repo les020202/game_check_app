@@ -35,98 +35,110 @@ class _OnboardingGameTypePageState extends State<OnboardingGameTypePage> {
         ],
         actionsPadding: EdgeInsets.only(right: 20),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              child: LinearProgressIndicator(
-                value: 1 / 3,
-                backgroundColor: Colors.grey,
-                color: Colors.blue,
-              ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              '어떤 타입의 게임을\n즐겨 하시나요?',
-              style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              '중복 선택 가능해요.',
-              style: textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            SizedBox(height: 12),
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: gameTypeList.length,
-              itemBuilder: (context, index) {
-                final gameType = gameTypeList[index];
-                return Padding(
-                  padding: const EdgeInsets.all(5.0),
-                  child: Container(
-                    padding: const EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${gameType[0]}',
-                              style: textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: ClipRRect(
+                          child: LinearProgressIndicator(
+                            value: 1 / 3,
+                            backgroundColor: Colors.grey,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        '어떤 타입의 게임을\n즐겨 하시나요?',
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        '중복 선택 가능해요.',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: gameTypeList.length,
+                        itemBuilder: (context, index) {
+                          final gameType = gameTypeList[index];
+                          return Padding(
+                            padding: const EdgeInsets.all(5.0),
+                            child: Container(
+                              padding: const EdgeInsets.all(10.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '${gameType[0]}',
+                                        style: textTheme.bodyLarge?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${gameType[1]}',
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Checkbox(
+                                    value: isCheckeds[index],
+                                    onChanged: (isChecked) {
+                                      setState(() {
+                                        isCheckeds[index] = isChecked!;
+                                      });
+                                    },
+                                    shape: const CircleBorder(),
+                                  ),
+                                ],
                               ),
                             ),
-                            Text(
-                              '${gameType[1]}',
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Checkbox(
-                          value: isCheckeds[index],
-                          onChanged: (isChecked) {
-                            setState(() {
-                              isCheckeds[index] = isChecked!;
-                            });
-                          },
-                          shape: const CircleBorder(),
-                        ),
-                      ],
-                    ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
-            Spacer(),
-            CustomButton(
-              customText: '다음',
-              backgroundColors: colorScheme.primary,
-              fontStyle: textTheme.bodyMedium!.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w400,
+                ),
               ),
-              onPressed: () {
-                context.go('/onboarding_game_select_page');
-              },
-            ),
-            SizedBox(height: 12),
-          ],
+              CustomButton(
+                customText: '다음',
+                backgroundColors: colorScheme.primary,
+                fontStyle: textTheme.bodyMedium!.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w400,
+                ),
+                onPressed: () {
+                  context.go('/onboarding_game_select_page');
+                },
+              ),
+              SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
     );

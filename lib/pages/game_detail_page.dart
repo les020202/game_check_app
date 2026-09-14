@@ -91,216 +91,219 @@ class _GameDetailPageState extends State<GameDetailPage> {
         ],
       ), //임시 이름
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '캘린더',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.white,
-                  ),
-                  child: TableCalendar(
-                    locale: 'ko_KR',
-                    firstDay: DateTime(DateTime.now().year - 1, 1, 1),
-                    lastDay: DateTime(DateTime.now().year + 1, 12, 31),
-                    focusedDay: _focusedDay,
-                    calendarFormat: CalendarFormat.month,
-                    availableGestures: AvailableGestures.none,
-                    onPageChanged: (newFocusedDay) {
-                      setState(() {
-                        _focusedDay = newFocusedDay;
-                      });
-                    },
-                    headerStyle: HeaderStyle(
-                      titleCentered: true,
-                      formatButtonVisible: false,
-                      titleTextStyle: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '캘린더',
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                    onDaySelected: (selectedDay, focusedDay) {
-                      context.go('/game_main_page/game_detail_page/game_detail_week_page');
-                    },
                   ),
-                ),
-                SizedBox(height: 12),
-                getQuestList(
-                  textTheme,
-                  colorScheme,
-                  '전체 일일 퀘스트',
-                  '매일 00:00 초기화',
-                ),
-                SizedBox(height: 12),
-                Text(
-                  '캐릭터',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  height: 80,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: characterList.length,
-                    itemBuilder: (context, index) {
-                      final chracter = characterList[index];
-                      return Padding(
-                        padding: const EdgeInsets.all(5.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isCharacterChecked[index] = !isCharacterChecked[index];
-                            });
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: isCharacterChecked[index]
-                                  ? Colors.blue
-                                  : Colors.white,
-                            ),
-                            constraints: BoxConstraints(minWidth: 90),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '${chracter[0]}',
-                                  style: textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text(
-                                  '${chracter[1]}',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.white,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '일일 퀘스트',
-                            style: textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          QuestProgressBadge(
-                            textTheme: textTheme,
-                            colorScheme: colorScheme,
-                          ),
-                        ],
-                      ),
-                      getCheckList(textTheme, dailyQuestList, isDailyChecked),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 12),
-                getQuestList(
-                  textTheme,
-                  colorScheme,
-                  '주간 퀘스트',
-                  '목 00:00 ~ 수 23:59',
-                ),
-                SizedBox(height: 12),
-                Container(
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.white,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ClipRRect(
-                        child: LinearProgressIndicator(
-                          value: isWeeklyCheckedCount == 0
-                              ? 0
-                              : isWeeklyCheckedCount! / weeklyQuestList.length,
-                          backgroundColor: Colors.grey,
-                          color: Colors.blue,
+                  SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white,
+                    ),
+                    child: TableCalendar(
+                      locale: 'ko_KR',
+                      firstDay: DateTime(DateTime.now().year - 1, 1, 1),
+                      lastDay: DateTime(DateTime.now().year + 1, 12, 31),
+                      focusedDay: _focusedDay,
+                      calendarFormat: CalendarFormat.month,
+                      availableGestures: AvailableGestures.none,
+                      onPageChanged: (newFocusedDay) {
+                        setState(() {
+                          _focusedDay = newFocusedDay;
+                        });
+                      },
+                      headerStyle: HeaderStyle(
+                        titleCentered: true,
+                        formatButtonVisible: false,
+                        titleTextStyle: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(height: 12),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: weeklyQuestList.length,
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 1,
-                          crossAxisSpacing: 1,
-                          childAspectRatio: 2,
-                        ),
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
+                      onDaySelected: (selectedDay, focusedDay) {
+                        context.go('/game_main_page/game_detail_page/game_detail_week_page');
+                      },
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  getQuestList(
+                    textTheme,
+                    colorScheme,
+                    '전체 일일 퀘스트',
+                    '매일 00:00 초기화',
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    '캐릭터',
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 80,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: characterList.length,
+                      itemBuilder: (context, index) {
+                        final chracter = characterList[index];
+                        return Padding(
+                          padding: const EdgeInsets.all(5.0),
+                          child: GestureDetector(
                             onTap: () {
                               setState(() {
-                                isWeeklyChecked[index] =
-                                    !isWeeklyChecked[index];
-                                isWeeklyCheckedCount = isWeeklyChecked
-                                    .where((e) => e)
-                                    .length;
+                                isCharacterChecked[index] = !isCharacterChecked[index];
                               });
                             },
                             child: Container(
-                              width: double.infinity,
-                              height: double.infinity,
-                              alignment: Alignment.center,
+                              padding: EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
-                                color: isWeeklyChecked[index]
+                                color: isCharacterChecked[index]
                                     ? Colors.blue
                                     : Colors.white,
                               ),
-                              child: Text('${weeklyQuestList[index]}'),
+                              constraints: BoxConstraints(minWidth: 90),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${chracter[0]}',
+                                    style: textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${chracter[1]}',
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          );
-                        },
-                      ),
-                    ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
-                SizedBox(height: 12),
-                getQuestList(textTheme, colorScheme, '월간 퀘스트', '$formatted'),
-                SizedBox(height: 12),
-                getCheckList(textTheme, monthlyQuestList, isMonthlyChecked),
-                SizedBox(height: 12),
-                getQuestList(textTheme, colorScheme, '목표',null),
-                SizedBox(height: 12),
-                getCheckList(textTheme, targetQuestList, isTargetChecked),
-              ],
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '일일 퀘스트',
+                              style: textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            QuestProgressBadge(
+                              textTheme: textTheme,
+                              colorScheme: colorScheme,
+                            ),
+                          ],
+                        ),
+                        getCheckList(textTheme, dailyQuestList, isDailyChecked),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  getQuestList(
+                    textTheme,
+                    colorScheme,
+                    '주간 퀘스트',
+                    '목 00:00 ~ 수 23:59',
+                  ),
+                  SizedBox(height: 12),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ClipRRect(
+                          child: LinearProgressIndicator(
+                            value: isWeeklyCheckedCount == 0
+                                ? 0
+                                : isWeeklyCheckedCount! / weeklyQuestList.length,
+                            backgroundColor: Colors.grey,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: weeklyQuestList.length,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 1,
+                            crossAxisSpacing: 1,
+                            childAspectRatio: 2,
+                          ),
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  isWeeklyChecked[index] =
+                                      !isWeeklyChecked[index];
+                                  isWeeklyCheckedCount = isWeeklyChecked
+                                      .where((e) => e)
+                                      .length;
+                                });
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                height: double.infinity,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: isWeeklyChecked[index]
+                                      ? Colors.blue
+                                      : Colors.white,
+                                ),
+                                child: Text('${weeklyQuestList[index]}'),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  getQuestList(textTheme, colorScheme, '월간 퀘스트', '$formatted'),
+                  SizedBox(height: 12),
+                  getCheckList(textTheme, monthlyQuestList, isMonthlyChecked),
+                  SizedBox(height: 12),
+                  getQuestList(textTheme, colorScheme, '목표',null),
+                  SizedBox(height: 12),
+                  getCheckList(textTheme, targetQuestList, isTargetChecked),
+                ],
+              ),
             ),
           ),
         ),

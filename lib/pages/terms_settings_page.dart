@@ -28,82 +28,84 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
     TextTheme textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: CustomAppBar(title: '이용약관 및 개인정보처리방침'),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Text(
-                    '필수 약관  ',
-                    style: textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Text(
-                    '  서비스 이용을 위해 반드시 필요해요',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(10),
-                child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              children: [
+                Row(
                   children: [
-                    getRequiredTerms(
-                      textTheme, reqTerms, reqTermsText, 
-                      getAgree(textTheme), reqTermsAddress
-                    )
+                    Text(
+                      '필수 약관  ',
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      '  서비스 이용을 위해 반드시 필요해요',
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey,
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              SizedBox(height: 24,),
-              Row(
-                children: [
-                  Text(
-                    '선택 약관  ',
-                    style: textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  Text(
-                    '  동의하지 않아도 서비스 이용 가능해요',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w400,
-                      color: Colors.grey,
-                    ),
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    children: [
+                      getRequiredTerms(
+                        textTheme, reqTerms, reqTermsText, 
+                        getAgree(textTheme), reqTermsAddress
+                      )
+                    ],
                   ),
-                ],
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.all(10),
-                child: Column(
+                SizedBox(height: 24,),
+                Row(
                   children: [
-                    getRequiredTerms(
-                      textTheme, terms, termsText, 
-                      AppSwitch(value: isOn, onChanged: (value) {
-                        setState(() {
-                          isOn=value;
-                        });
-                      }, scale: 0.8),
-                      termsAddress
-                    )
+                    Text(
+                      '선택 약관  ',
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      '  동의하지 않아도 서비스 이용 가능해요',
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey,
+                      ),
+                    ),
                   ],
                 ),
-              ),
-            ],
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    children: [
+                      getRequiredTerms(
+                        textTheme, terms, termsText, 
+                        AppSwitch(value: isOn, onChanged: (value) {
+                          setState(() {
+                            isOn=value;
+                          });
+                        }, scale: 0.8),
+                        termsAddress
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:game_check_app/widgets/status_indicator.dart';
 
 import '../models/day_quest_status.dart';
 import '../models/game.dart';
+import '../models/game_type.dart';
 import '../models/weekday.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/week_day_cell.dart';
@@ -21,9 +22,9 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
     userId: null,
     name: '메이플스토리',
     gameType: GameType.rpg,
-    dailyResetHour: 0,
-    dailyResetMinute: 0,
-    weeklyResetWeekday: Weekday.thursday.value, // 목요일 리셋
+    gameResetHour: 0,
+    gameResetMinute: 0,
+    weeklyResetWeekday: Weekday.thursday, // 목요일 리셋
   ); //임시
   late DateTime weekStart;
 
@@ -36,7 +37,7 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
   @override
   void initState() {
     super.initState();
-    weekStart = getWeekStart(DateTime.now(), game.weeklyResetWeekday);
+    weekStart = getWeekStart(DateTime.now(), game.weeklyResetWeekday.value);
     weekDates = List.generate(7, (i) => weekStart.add(Duration(days: i)));
 
     // 임시 데이터

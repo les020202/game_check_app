@@ -36,278 +36,281 @@ class _GameSetupPageState extends State<GameSetupPage> {
     return Scaffold(
       appBar: CustomAppBar(title: '게임 설정'),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '게임 이름',
-                    style: textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        hintText: '게임 이름을 입력하세요.',
-                        filled: true,
-                        fillColor: Colors.grey.shade300,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.close),
-                          onPressed: () {},
-                        ),
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '게임 이름',
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    '게임 유형',
-                    style: textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: Container(
-                            padding: EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'RPG',
-                                  style: textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                Text('캐릭터 여러 개', style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w400,
-                                )),
-                              ],
-                            ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          hintText: '게임 이름을 입력하세요.',
+                          filled: true,
+                          fillColor: Colors.grey.shade300,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(Icons.close),
+                            onPressed: () {},
                           ),
                         ),
                       ),
-                      SizedBox(width: 20),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: Container(
-                            padding: EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  '모바일 게임',
-                                  style: textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.w700,
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      '게임 유형',
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {},
+                            child: Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'RPG',
+                                    style: textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '계정 1개', 
-                                  style: textTheme.bodyMedium?.copyWith(
+                                  Text('캐릭터 여러 개', style: textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ],
+                                  )),
+                                ],
+                              ),
                             ),
                           ),
                         ),
+                        SizedBox(width: 20),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {},
+                            child: Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    '모바일 게임',
+                                    style: textTheme.bodyLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  Text(
+                                    '계정 1개', 
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      '게임 초기화 설정',
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    '게임 초기화 설정',
-                    style: textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
                     ),
-                  ),
-                  Text(
-                    '초기화 시간',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w400,
+                    Text(
+                      '초기화 시간',
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                  Container(
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: CupertinoPicker(
-                            itemExtent: 32,
-                            onSelectedItemChanged: (int index) {},
-                            children: List.generate(24, (index) {
-                              return Center(
-                                child: Text(
-                                  index.toString().padLeft(2, '0'),
-                                ), // 00, 01, 02 ...
-                              );
-                            }),
+                    Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CupertinoPicker(
+                              itemExtent: 32,
+                              onSelectedItemChanged: (int index) {},
+                              children: List.generate(24, (index) {
+                                return Center(
+                                  child: Text(
+                                    index.toString().padLeft(2, '0'),
+                                  ), // 00, 01, 02 ...
+                                );
+                              }),
+                            ),
                           ),
-                        ),
-                        Text(':', style: TextStyle(fontSize: 24)),
-                        Expanded(
-                          child: CupertinoPicker(
-                            itemExtent: 32,
-                            onSelectedItemChanged: (int index) {},
-                            children: List.generate(60, (index) {
-                              return Center(
-                                child: Text(
-                                  index.toString().padLeft(2, '0'),
-                                ), // 00, 01, 02 ...
-                              );
-                            }),
+                          Text(':', style: TextStyle(fontSize: 24)),
+                          Expanded(
+                            child: CupertinoPicker(
+                              itemExtent: 32,
+                              onSelectedItemChanged: (int index) {},
+                              children: List.generate(60, (index) {
+                                return Center(
+                                  child: Text(
+                                    index.toString().padLeft(2, '0'),
+                                  ), // 00, 01, 02 ...
+                                );
+                              }),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    '주간 초기화 요일',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w400,
+                    SizedBox(height: 12),
+                    Text(
+                      '주간 초기화 요일',
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                  ...getWeekButton(),
-                  SizedBox(height: 12),
-                  getCheckBox(
-                    textTheme,
-                    '일일 퀘스트 종류',
-                    isDailyChecked,
-                    (value) => setState(() => isDailyChecked = value),
-                  ),
-                  ...getDailyInputText('일일 퀘스트를 입력하세요.'),
-                  CustomDottedButton(customText: '+ 일일 퀘스트 추가', onPressed: () {}),
-                  SizedBox(height: 12),
-                  getCheckBox(
-                    textTheme,
-                    '캐릭터별 설정',
-                    isChracterChecked,
-                    (value) => setState(() => isChracterChecked = value),
-                  ),
-                  Text(
-                    '캐릭터별로 주/월 퀘스트와 목표를 설정할 수 있어요.',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w400,
+                    ...getWeekButton(),
+                    SizedBox(height: 12),
+                    getCheckBox(
+                      textTheme,
+                      '일일 퀘스트 종류',
+                      isDailyChecked,
+                      (value) => setState(() => isDailyChecked = value),
                     ),
-                  ),
-                  ...getCharacterButton(),
-                  SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(12),
+                    ...getDailyInputText('일일 퀘스트를 입력하세요.'),
+                    CustomDottedButton(customText: '+ 일일 퀘스트 추가', onPressed: () {}),
+                    SizedBox(height: 12),
+                    getCheckBox(
+                      textTheme,
+                      '캐릭터별 설정',
+                      isChracterChecked,
+                      (value) => setState(() => isChracterChecked = value),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${characterList[chracterSelectedIndex]} 캐릭터 개별 설정',
-                          style: textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
+                    Text(
+                      '캐릭터별로 주/월 퀘스트와 목표를 설정할 수 있어요.',
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    ...getCharacterButton(),
+                    SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${characterList[chracterSelectedIndex]} 캐릭터 개별 설정',
+                            style: textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                        Divider(
-                          height: 24, // 위아래 여백 포함 전체 높이
-                          thickness: 1, // 선 두께
-                          color: Colors.grey.shade300,
-                          indent: 5, // 왼쪽 여백
-                          endIndent: 5, // 오른쪽 여백
-                        ),
-                        Text(
-                          '주간 퀘스트',
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.grey.shade800,
+                          Divider(
+                            height: 24, // 위아래 여백 포함 전체 높이
+                            thickness: 1, // 선 두께
+                            color: Colors.grey.shade300,
+                            indent: 5, // 왼쪽 여백
+                            endIndent: 5, // 오른쪽 여백
                           ),
-                        ),
-                        ...getWeeklyInputText('주간 퀘스트를 입력하세요.'),
-                        CustomDottedButton(
-                          customText: '+ 주간 퀘스트 추가',
-                          onPressed: () {
-                            setState(() {});
-                          },
-                        ),
-                        Text(
-                          '월간 퀘스트',
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.grey.shade800,
+                          Text(
+                            '주간 퀘스트',
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.grey.shade800,
+                            ),
                           ),
-                        ),
-                        ...getMonthlyInputText('월간 퀘스트를 입력하세요.'),
-                        CustomDottedButton(
-                          customText: '+ 월간 퀘스트 추가',
-                          onPressed: () {
-                            setState(() {});
-                          },
-                        ),
-                        Text(
-                          '목표',
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.grey.shade800,
+                          ...getWeeklyInputText('주간 퀘스트를 입력하세요.'),
+                          CustomDottedButton(
+                            customText: '+ 주간 퀘스트 추가',
+                            onPressed: () {
+                              setState(() {});
+                            },
                           ),
-                        ),
-                        ...getTargetlyInputText('목표를 입력해주세요.'),
-                        CustomDottedButton(
-                          customText: '+ 목표 추가',
-                          onPressed: () {
-                            setState(() {});
-                          },
-                        ),
-                      ],
+                          Text(
+                            '월간 퀘스트',
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                          ...getMonthlyInputText('월간 퀘스트를 입력하세요.'),
+                          CustomDottedButton(
+                            customText: '+ 월간 퀘스트 추가',
+                            onPressed: () {
+                              setState(() {});
+                            },
+                          ),
+                          Text(
+                            '목표',
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                          ...getTargetlyInputText('목표를 입력해주세요.'),
+                          CustomDottedButton(
+                            customText: '+ 목표 추가',
+                            onPressed: () {
+                              setState(() {});
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 12),
-                  CustomButton(
-                    customText: '설정 완료',
-                    backgroundColors: Colors.white,
-                    fontStyle: textTheme.bodyMedium!.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colorScheme.primary,
+                    SizedBox(height: 12),
+                    CustomButton(
+                      customText: '설정 완료',
+                      backgroundColors: colorScheme.primary,
+                      fontStyle: textTheme.bodyMedium!.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                      onPressed: (){
+                        context.go('/game_main_page/game_detail_page');
+                      },
+                      borderSide: BorderSide(color: colorScheme.primary,),
                     ),
-                    onPressed: (){
-                      context.go('/game_main_page/game_detail_page');
-                    },
-                    borderSide: BorderSide(color: colorScheme.primary,),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

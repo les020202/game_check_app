@@ -35,49 +35,51 @@ class TermsDetailPage extends StatelessWidget {
     TextTheme textTheme = Theme.of(context).textTheme;
     return Scaffold(
       appBar: CustomAppBar(title: '서비스 이용약관'),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(12),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text('시행일 : 2026.03.01 버전 1.2'),
                   ),
-                  padding: const EdgeInsets.all(10.0),
-                  child: Text('시행일 : 2026.03.01 버전 1.2'),
-                ),
-                Divider(),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: termsDetails.length,
-                  itemBuilder: (context, index) {
-                    List<String> termsDetail=termsDetails[index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        for(int i=0;i<termsDetail.length;i++)
-                          Text(
-                            '${termsDetail[i]}',
-                            style: i==0 ? 
-                              textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)
-                              :textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400)
-                          ),
-                        SizedBox(height: 12,),
-                      ],
-                    );
-                  },
-                ),
-              ],
+                  Divider(),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: termsDetails.length,
+                    itemBuilder: (context, index) {
+                      List<String> termsDetail=termsDetails[index];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for(int i=0;i<termsDetail.length;i++)
+                            Text(
+                              '${termsDetail[i]}',
+                              style: i==0 ? 
+                                textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)
+                                :textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400)
+                            ),
+                          SizedBox(height: 12,),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
