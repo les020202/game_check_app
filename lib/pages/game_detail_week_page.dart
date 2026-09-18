@@ -65,6 +65,7 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: CustomAppBar(title: '주간 현황'), //임시 이름
       body: SafeArea(
@@ -77,7 +78,7 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                   padding: const EdgeInsets.all(20.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.all(10.0),
@@ -118,7 +119,7 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                           ),
                         ),
                         SizedBox(height: 12),
-                        getGuideStatus(),
+                        getGuideStatus(colorScheme),
                       ],
                     ),
                   ),
@@ -127,7 +128,7 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                   padding: const EdgeInsets.all(20.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.all(10.0),
@@ -174,7 +175,7 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                             );
                           },
                         ),
-                        getGuideStatus(),
+                        getGuideStatus(colorScheme),
                       ],
                     ),
                   ),
@@ -183,7 +184,7 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                   padding: const EdgeInsets.all(20.0),
                   child: Container(
                     decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                         borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.all(10.0),
@@ -245,7 +246,7 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
     );
   }
 
-  Row getGuideStatus() {
+  Row getGuideStatus(ColorScheme colorScheme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
@@ -284,9 +285,9 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
           child: Container(
             width: 10,
             height: 10,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white,
+              color: colorScheme.onPrimary,
             ),
           ),
         ),

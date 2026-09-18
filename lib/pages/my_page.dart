@@ -45,7 +45,7 @@ class _MyPageState extends State<MyPage> {
                 Container(
                   padding: const EdgeInsets.all(10.0),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -174,7 +174,7 @@ class _MyPageState extends State<MyPage> {
                 SizedBox(height: 12),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(

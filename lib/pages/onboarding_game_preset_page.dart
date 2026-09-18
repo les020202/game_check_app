@@ -56,7 +56,7 @@ class OnboardingGamePresetPage extends StatelessWidget {
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                         border: Border.all(color: Colors.grey),
                       ),
                       child: ListView.separated(
@@ -108,7 +108,7 @@ class OnboardingGamePresetPage extends StatelessWidget {
               customText: '이 프리셋 사용하기',
               backgroundColors: colorScheme.primary,
               fontStyle: textTheme.bodyMedium!.copyWith(
-                color: Colors.white,
+                color: colorScheme.onPrimary,
                 fontWeight: FontWeight.w400,
               ),
               onPressed: () {
@@ -117,7 +117,7 @@ class OnboardingGamePresetPage extends StatelessWidget {
             ),
             CustomButton(
               customText: '추가 설정하고 시작하기',
-              backgroundColors: Colors.white,
+              backgroundColors: colorScheme.onPrimary,
               fontStyle: textTheme.bodyMedium!.copyWith(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.w400,

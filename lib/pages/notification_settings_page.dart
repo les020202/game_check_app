@@ -45,7 +45,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                         opacity: isOn ? 1.0 : 0.4,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: colorScheme.onPrimary,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           padding: const EdgeInsets.all(10.0),
@@ -121,7 +121,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
                       Container(
                         height: 100,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colorScheme.onPrimary,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.grey.shade300),
                         ),
@@ -196,10 +196,10 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
       gameList.add(
         Container(
           decoration: BoxDecoration(
-            color: isCheckeds[i] ? Colors.blue.shade50 : Colors.white,
+            color: isCheckeds[i] ? Colors.blue.shade50 : colorScheme.onPrimary,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isCheckeds[i] ? colorScheme.primary : Colors.white,
+              color: isCheckeds[i] ? colorScheme.primary : colorScheme.onPrimary,
             ),
           ),
           child: Row(

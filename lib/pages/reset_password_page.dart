@@ -25,7 +25,7 @@ class ResetPasswordPage extends StatelessWidget {
               key: _formKey,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 padding: const EdgeInsets.all(10.0),
@@ -88,7 +88,7 @@ class ResetPasswordPage extends StatelessWidget {
                       backgroundColors: colorScheme.primary,
                       fontStyle: textTheme.bodyMedium!.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                       ),
                       onPressed: () {
                         context.go('/my_page/login_page/reset_password_page/mail_check_page');

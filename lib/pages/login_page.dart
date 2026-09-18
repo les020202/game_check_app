@@ -27,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
             padding: const EdgeInsets.all(20.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.onPrimary,
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.all(10.0),
@@ -99,7 +99,7 @@ class _LoginPageState extends State<LoginPage> {
                     },
                     backgroundColors: colorScheme.primary,
                     fontStyle: textTheme.bodyMedium!.copyWith(
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: () {
                       
                     },
-                    backgroundColors: Colors.white,
+                    backgroundColors: colorScheme.onPrimary,
                     fontStyle: textTheme.bodyMedium!.copyWith(
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w400,

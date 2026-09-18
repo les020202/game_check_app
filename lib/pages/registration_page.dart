@@ -48,7 +48,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       labelText: '닉네임',
                       labelStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: colorScheme.onPrimary,
                       hintText: '멋진 사용자',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -63,7 +63,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       labelText: '이메일',
                       labelStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: colorScheme.onPrimary,
                       hintText: 'example@example.com',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -80,7 +80,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       labelText: '비밀번호',
                       labelStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: colorScheme.onPrimary,
                       hintText: '비밀번호를 입력하세요',
                       helperText: '*비밀번호는 6자 이상 입력해주세요.',
                       helperStyle: textTheme.bodySmall?.copyWith(
@@ -101,7 +101,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       labelText: '비밀번호확인',
                       labelStyle: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: colorScheme.onPrimary,
                       hintText: '비밀번호를 한번더 입력하세요',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -113,7 +113,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   SizedBox(height: 30),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -140,7 +140,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   SizedBox(height: 12,),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -163,7 +163,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       ),
                       child: Text(
                         '가입하기',
-                        style: TextStyle(fontSize: 20, color: Colors.white),
+                        style: TextStyle(fontSize: 20, color: colorScheme.onPrimary,),
                       ),
                     ),
                   ),

@@ -94,7 +94,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                         fontWeight: FontWeight.w700,
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: colorScheme.onPrimary,
                       hintText: '문의 제목을 입력해주세요',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -115,7 +115,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                         fontWeight: FontWeight.w700,
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: colorScheme.onPrimary,
                       hintText:
                           '어떤 문제가 있으셨나요?\n어떤 화면에서 발생했는지,\n언제부터 그랬는지 적어주시면\n더 빠르게 도와드릴 수 있어요.',
                       hintMaxLines: 5,
@@ -141,7 +141,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                         height: 100,
                         width: 100,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colorScheme.onPrimary,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
@@ -198,7 +198,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                     backgroundColors: colorScheme.primary,
                     fontStyle: textTheme.bodyLarge!.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                     ),
                   ),
                 ],

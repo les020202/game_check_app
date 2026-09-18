@@ -11,6 +11,7 @@ class StatusIndicator extends StatelessWidget {
   final DayQuestStatus status;
   @override
   Widget build(BuildContext context) {
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     if (status == DayQuestStatus.upcoming) {
       return DottedBorder(
         options: CircularDottedBorderOptions(
@@ -23,7 +24,7 @@ class StatusIndicator extends StatelessWidget {
           height: 20,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white,
+            color: colorScheme.onPrimary,
           ),
         ),
       );
@@ -34,7 +35,7 @@ class StatusIndicator extends StatelessWidget {
       height: 25,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: _backgroundColor(status),
+        color: _backgroundColor(status,colorScheme),
         border: status == DayQuestStatus.partial
             ? Border.all(color: Colors.blue, width: 1)
             : null,
@@ -42,7 +43,7 @@ class StatusIndicator extends StatelessWidget {
     );
   }
 
-  Color _backgroundColor(DayQuestStatus status) {
+  Color _backgroundColor(DayQuestStatus status,ColorScheme colorScheme) {
     switch (status) {
       case DayQuestStatus.complete:
         return Colors.blue;
@@ -51,7 +52,7 @@ class StatusIndicator extends StatelessWidget {
       case DayQuestStatus.incomplete:
         return Colors.grey;
       case DayQuestStatus.upcoming:
-        return Colors.white;
+        return colorScheme.onPrimary;
     }
   }
 }

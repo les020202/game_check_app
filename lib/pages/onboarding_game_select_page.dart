@@ -72,7 +72,7 @@ class _OnboardingGameSelectPageState extends State<OnboardingGameSelectPage> {
                             child: Container(
                               padding: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: colorScheme.onPrimary,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: Colors.grey),
                               ),
@@ -126,7 +126,7 @@ class _OnboardingGameSelectPageState extends State<OnboardingGameSelectPage> {
                 customText: '다음',
                 backgroundColors: colorScheme.primary,
                 fontStyle: textTheme.bodyMedium!.copyWith(
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                   fontWeight: FontWeight.w400,
                 ),
                 onPressed: () {
@@ -137,7 +137,7 @@ class _OnboardingGameSelectPageState extends State<OnboardingGameSelectPage> {
               ),
               CustomButton(
                 customText: '내가 하는 게임이 없어요, 넘어갈게요',
-                backgroundColors: Colors.white,
+                backgroundColors: colorScheme.onPrimary,
                 fontStyle: textTheme.bodyMedium!.copyWith(
                   color: colorScheme.primary,
                   fontWeight: FontWeight.w400,

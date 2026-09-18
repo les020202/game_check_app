@@ -30,7 +30,7 @@ class CustomDottedButton extends StatelessWidget {
             onPressed: onPressed,
             style: ElevatedButton.styleFrom(
               elevation: 0,
-              backgroundColor: Colors.white,
+              backgroundColor: colorScheme.onPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

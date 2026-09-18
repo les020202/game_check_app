@@ -188,7 +188,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                       Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          color: Colors.white,
+                          color: colorScheme.onPrimary,
                         ),
                         child: TableCalendar(
                           locale: 'ko_KR',
@@ -262,7 +262,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                                     borderRadius: BorderRadius.circular(12),
                                     color: characterSelectedIndex == index
                                         ? Colors.blue
-                                        : Colors.white,
+                                        : colorScheme.onPrimary
                                   ),
                                   constraints: BoxConstraints(minWidth: 70),
                                   child: Text(
@@ -282,7 +282,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          color: Colors.white,
+                          color: colorScheme.onPrimary,
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -313,6 +313,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                       SizedBox(height: 12),
                       if(dailyQuests.isNotEmpty) getCheckList(
                         textTheme,
+                        colorScheme,
                         dailyQuests,
                         isDailyChecked,
                         characterId: characters[characterSelectedIndex].id,
@@ -331,7 +332,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          color: Colors.white,
+                          color: colorScheme.onPrimary,
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -383,7 +384,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                                           isWeeklyChecked[weeklyQuests[index]
                                               .id]!
                                           ? Colors.blue
-                                          : Colors.white,
+                                          : colorScheme.onPrimary,
                                     ),
                                     child: Text('${weeklyQuests[index].name}'),
                                   ),
@@ -403,7 +404,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         allCount: monthlyQuests.length,
                       ),
                       SizedBox(height: 12),
-                      if(monthlyQuests.isNotEmpty) getCheckList(textTheme, monthlyQuests, isMonthlyChecked),
+                      if(monthlyQuests.isNotEmpty) getCheckList(textTheme,colorScheme, monthlyQuests, isMonthlyChecked),
                       SizedBox(height: 12),
                       getQuestList(
                         textTheme,
@@ -414,7 +415,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         allCount: goalQuests.length,
                       ),
                       SizedBox(height: 12),
-                      if(goalQuests.isNotEmpty) getCheckList(textTheme, goalQuests, isGoalChecked),
+                      if(goalQuests.isNotEmpty) getCheckList(textTheme,colorScheme, goalQuests, isGoalChecked),
                     ],
                   ),
                 ),
@@ -440,7 +441,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
       padding: EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
+        color: colorScheme.onPrimary,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -488,6 +489,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
 
   Widget getCheckList(
     TextTheme textTheme,
+    ColorScheme colorScheme,
     List<dynamic> quests,
     Map<String, bool> isCheckeds, {
     String? characterId,
@@ -496,7 +498,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
       padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
+        color: colorScheme.onPrimary,
       ),
       child: ListView.separated(
         shrinkWrap: true,

@@ -84,7 +84,7 @@ class _CustomerServicePageState extends State<CustomerServicePage> {
                   backgroundColors: colorScheme.primary, 
                   fontStyle: textTheme.bodyLarge!.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                   )
                 ),
               ],

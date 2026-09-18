@@ -54,7 +54,7 @@ class GameListTile extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(7),
                 ),
-                tileColor: Colors.white,
+                tileColor: colorScheme.onPrimary,
                 leading: Container(
                   height: 40,
                   width: 40,

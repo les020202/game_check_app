@@ -49,7 +49,7 @@ class MailCheckPage extends StatelessWidget {
                   SizedBox(height: 24),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.all(10.0),
@@ -114,7 +114,7 @@ class MailCheckPage extends StatelessWidget {
                   child: Text(
                     '${i + 1}',
                     style: textTheme.bodyLarge?.copyWith(
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

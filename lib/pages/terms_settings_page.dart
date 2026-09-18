@@ -26,6 +26,7 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: CustomAppBar(title: '이용약관 및 개인정보처리방침'),
       body: SafeArea(
@@ -53,7 +54,7 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.all(10),
@@ -86,7 +87,7 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.all(10),

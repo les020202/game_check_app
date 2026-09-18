@@ -23,7 +23,7 @@ class TagFilter extends StatelessWidget {
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-            color: isCheckeds[index] ? colorScheme.primary : Colors.white,
+            color: isCheckeds[index] ? colorScheme.primary : colorScheme.onPrimary,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: Colors.grey),
           ),
@@ -38,7 +38,7 @@ class TagFilter extends StatelessWidget {
               '${typeNames[index]}',
               style: textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: isCheckeds[index] ? Colors.white : Colors.black,
+                color: isCheckeds[index] ? colorScheme.onPrimary : Colors.black,
               ),
             ),
           ),

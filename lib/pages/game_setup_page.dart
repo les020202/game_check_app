@@ -150,11 +150,6 @@ class _GameSetupPageState extends State<GameSetupPage> {
   }
 
   @override
-  void didUpdateWidget(covariant GameSetupPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-  }
-
-  @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -308,7 +303,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                     Container(
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey.shade300),
                       ),
@@ -390,14 +385,14 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-                    ...getCharacterButton(),
+                    ...getCharacterButton(colorScheme),
                     SizedBox(height: 12),
                     if (!isChracterChecked)
                       Container(
                         width: double.infinity,
                         padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colorScheme.onPrimary,
                           border: Border.all(color: Colors.grey.shade300),
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -459,7 +454,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                                 color: Colors.grey.shade800,
                               ),
                             ),
-                            ...getTargetlyInputText(),
+                            ...getTargetlyInputText(colorScheme),
                             CustomDottedButton(
                               customText: '+ 목표 추가',
                               onPressed: () {
@@ -485,7 +480,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                       backgroundColors: colorScheme.primary,
                       fontStyle: textTheme.bodyMedium!.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                       ),
                       onPressed: () {
                         final gp = Provider.of<GameProvider>(
@@ -833,7 +828,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
     return monthlyQuestWidget;
   }
 
-  List<Widget> getTargetlyInputText() {
+  List<Widget> getTargetlyInputText(ColorScheme colorScheme) {
     final currentCharacterId = selectedCharacterId!;
     final currentList = goalQuestsByCharacter[currentCharacterId]!;
     List<Widget> targetQuestWidget = [];
@@ -874,6 +869,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                   ),
                 ),
               ),
+              SizedBox(height: 6,),
               TextFormField(
                 key: ValueKey(
                   'goal_memo_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
@@ -896,10 +892,11 @@ class _GameSetupPageState extends State<GameSetupPage> {
                   ),
                 ),
               ),
+              SizedBox(height: 6,),
               Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colorScheme.onPrimary,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
@@ -999,7 +996,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                 selectedColor: colorScheme.primary,
                 backgroundColor: colorScheme.onPrimary,
                 labelStyle: TextStyle(
-                  color: isSelected ? Colors.white : Colors.black,
+                  color: isSelected ? colorScheme.onPrimary : Colors.black,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -1013,7 +1010,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
     return weekButton;
   }
 
-  List<Widget> getCharacterButton() {
+  List<Widget> getCharacterButton(ColorScheme colorScheme) {
     List<Widget> chracterButton = [];
     bool isSelected;
     chracterButton.add(
@@ -1046,7 +1043,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         },
                         style: TextStyle(
                           fontSize: 14,
-                          color: isThisSelected ? Colors.white : Colors.black,
+                          color: isThisSelected ? colorScheme.onPrimary : Colors.black,
                         ),
                         textAlign: TextAlign.center,
                         decoration: const InputDecoration(
@@ -1066,9 +1063,9 @@ class _GameSetupPageState extends State<GameSetupPage> {
                     showCheckmark: false,
                     labelPadding: EdgeInsets.symmetric(horizontal: 8),
                     selectedColor: Colors.blue,
-                    backgroundColor: Colors.white,
+                    backgroundColor: colorScheme.onPrimary,
                     labelStyle: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black,
+                      color: isSelected ? colorScheme.onPrimary : Colors.black,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
@@ -1130,7 +1127,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                     },
                     style: ElevatedButton.styleFrom(
                       elevation: 0,
-                      backgroundColor: Colors.white,
+                      backgroundColor: colorScheme.onPrimary,
                       shape: CircleBorder(),
                       padding: EdgeInsets.zero,
                       side: BorderSide.none,

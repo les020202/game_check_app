@@ -33,6 +33,7 @@ class TermsDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: CustomAppBar(title: '서비스 이용약관'),
       body: SafeArea(
@@ -41,7 +42,7 @@ class TermsDetailPage extends StatelessWidget {
             padding: const EdgeInsets.all(20.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.onPrimary,
                 borderRadius: BorderRadius.circular(12),
               ),
               padding: const EdgeInsets.all(10.0),

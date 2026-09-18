@@ -59,7 +59,7 @@ class _FaqPageState extends State<FaqPage> {
                   decoration: InputDecoration(
                     hintText: '궁금한 내용을 검색해보세요.',
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: colorScheme.onPrimary,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -115,7 +115,7 @@ class _FaqPageState extends State<FaqPage> {
                       padding: const EdgeInsets.only(bottom: 12.0),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colorScheme.onPrimary,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: const EdgeInsets.only(left: 10.0, right: 10.0),
