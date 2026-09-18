@@ -19,7 +19,7 @@ import 'pages/registration_page.dart';
 import 'pages/reset_password_page.dart';
 import 'pages/terms_detail_page.dart';
 import 'pages/terms_settings_page.dart';
-import 'pages/workout_shell.dart';
+import 'pages/game_shell.dart';
 import 'pages/onboarding_game_type_page.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
@@ -53,7 +53,7 @@ final GoRouter router = GoRouter(
     StatefulShellRoute.indexedStack(
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state, navigationShell) {
-        return WorkoutShell(navigationShell: navigationShell);
+        return GameShell(navigationShell: navigationShell);
       },
       branches: [
         StatefulShellBranch(
@@ -64,8 +64,13 @@ final GoRouter router = GoRouter(
               builder: (context, state) => GameMainPage(),
               routes: [
                 GoRoute(
-                  path: 'game_detail_page',
-                  builder: (context, state) => GameDetailPage(),
+                  path: 'game_detail_page/:games_index',
+                  builder: (context, state) {
+                    String? gamesIndexString =
+                        state.pathParameters['games_index'];
+                    final gamesIndex = int.parse(gamesIndexString!);
+                    return GameDetailPage(gamesIndex: gamesIndex);
+                  },
                   routes: [
                     GoRoute(
                       path: 'game_detail_week_page',
@@ -75,7 +80,13 @@ final GoRouter router = GoRouter(
                 ),
                 GoRoute(
                   path: 'game_setup_page',
-                  builder: (context, state) => GameSetupPage(),
+                  builder: (context, state) {
+                    final indexParam = state.uri.queryParameters['games_index'];
+                    final gamesIndex = indexParam != null
+                        ? int.parse(indexParam)
+                        : null;
+                    return GameSetupPage(gamesIndex: gamesIndex);
+                  },
                 ),
               ],
             ),

@@ -35,23 +35,23 @@ class $GamesTable extends Games with TableInfo<$GamesTable, Game> {
         type: DriftSqlType.int,
         requiredDuringInsert: true,
       ).withConverter<GameType>($GamesTable.$convertergameType);
-  static const VerificationMeta _dailyResetHourMeta = const VerificationMeta(
-    'dailyResetHour',
+  static const VerificationMeta _gameResetHourMeta = const VerificationMeta(
+    'gameResetHour',
   );
   @override
-  late final GeneratedColumn<int> dailyResetHour = GeneratedColumn<int>(
-    'daily_reset_hour',
+  late final GeneratedColumn<int> gameResetHour = GeneratedColumn<int>(
+    'game_reset_hour',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _dailyResetMinuteMeta = const VerificationMeta(
-    'dailyResetMinute',
+  static const VerificationMeta _gameResetMinuteMeta = const VerificationMeta(
+    'gameResetMinute',
   );
   @override
-  late final GeneratedColumn<int> dailyResetMinute = GeneratedColumn<int>(
-    'daily_reset_minute',
+  late final GeneratedColumn<int> gameResetMinute = GeneratedColumn<int>(
+    'game_reset_minute',
     aliasedName,
     false,
     type: DriftSqlType.int,
@@ -83,8 +83,8 @@ class $GamesTable extends Games with TableInfo<$GamesTable, Game> {
     id,
     name,
     gameType,
-    dailyResetHour,
-    dailyResetMinute,
+    gameResetHour,
+    gameResetMinute,
     weeklyResetWeekday,
     createdAt,
   ];
@@ -113,27 +113,27 @@ class $GamesTable extends Games with TableInfo<$GamesTable, Game> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('daily_reset_hour')) {
+    if (data.containsKey('game_reset_hour')) {
       context.handle(
-        _dailyResetHourMeta,
-        dailyResetHour.isAcceptableOrUnknown(
-          data['daily_reset_hour']!,
-          _dailyResetHourMeta,
+        _gameResetHourMeta,
+        gameResetHour.isAcceptableOrUnknown(
+          data['game_reset_hour']!,
+          _gameResetHourMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_dailyResetHourMeta);
+      context.missing(_gameResetHourMeta);
     }
-    if (data.containsKey('daily_reset_minute')) {
+    if (data.containsKey('game_reset_minute')) {
       context.handle(
-        _dailyResetMinuteMeta,
-        dailyResetMinute.isAcceptableOrUnknown(
-          data['daily_reset_minute']!,
-          _dailyResetMinuteMeta,
+        _gameResetMinuteMeta,
+        gameResetMinute.isAcceptableOrUnknown(
+          data['game_reset_minute']!,
+          _gameResetMinuteMeta,
         ),
       );
     } else if (isInserting) {
-      context.missing(_dailyResetMinuteMeta);
+      context.missing(_gameResetMinuteMeta);
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -164,13 +164,13 @@ class $GamesTable extends Games with TableInfo<$GamesTable, Game> {
           data['${effectivePrefix}game_type'],
         )!,
       ),
-      dailyResetHour: attachedDatabase.typeMapping.read(
+      gameResetHour: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}daily_reset_hour'],
+        data['${effectivePrefix}game_reset_hour'],
       )!,
-      dailyResetMinute: attachedDatabase.typeMapping.read(
+      gameResetMinute: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}daily_reset_minute'],
+        data['${effectivePrefix}game_reset_minute'],
       )!,
       weeklyResetWeekday: $GamesTable.$converterweeklyResetWeekday.fromSql(
         attachedDatabase.typeMapping.read(
@@ -200,16 +200,16 @@ class Game extends DataClass implements Insertable<Game> {
   final String id;
   final String name;
   final GameType gameType;
-  final int dailyResetHour;
-  final int dailyResetMinute;
+  final int gameResetHour;
+  final int gameResetMinute;
   final Weekday weeklyResetWeekday;
   final DateTime createdAt;
   const Game({
     required this.id,
     required this.name,
     required this.gameType,
-    required this.dailyResetHour,
-    required this.dailyResetMinute,
+    required this.gameResetHour,
+    required this.gameResetMinute,
     required this.weeklyResetWeekday,
     required this.createdAt,
   });
@@ -223,8 +223,8 @@ class Game extends DataClass implements Insertable<Game> {
         $GamesTable.$convertergameType.toSql(gameType),
       );
     }
-    map['daily_reset_hour'] = Variable<int>(dailyResetHour);
-    map['daily_reset_minute'] = Variable<int>(dailyResetMinute);
+    map['game_reset_hour'] = Variable<int>(gameResetHour);
+    map['game_reset_minute'] = Variable<int>(gameResetMinute);
     {
       map['weekly_reset_weekday'] = Variable<int>(
         $GamesTable.$converterweeklyResetWeekday.toSql(weeklyResetWeekday),
@@ -239,8 +239,8 @@ class Game extends DataClass implements Insertable<Game> {
       id: Value(id),
       name: Value(name),
       gameType: Value(gameType),
-      dailyResetHour: Value(dailyResetHour),
-      dailyResetMinute: Value(dailyResetMinute),
+      gameResetHour: Value(gameResetHour),
+      gameResetMinute: Value(gameResetMinute),
       weeklyResetWeekday: Value(weeklyResetWeekday),
       createdAt: Value(createdAt),
     );
@@ -257,8 +257,8 @@ class Game extends DataClass implements Insertable<Game> {
       gameType: $GamesTable.$convertergameType.fromJson(
         serializer.fromJson<int>(json['gameType']),
       ),
-      dailyResetHour: serializer.fromJson<int>(json['dailyResetHour']),
-      dailyResetMinute: serializer.fromJson<int>(json['dailyResetMinute']),
+      gameResetHour: serializer.fromJson<int>(json['gameResetHour']),
+      gameResetMinute: serializer.fromJson<int>(json['gameResetMinute']),
       weeklyResetWeekday: $GamesTable.$converterweeklyResetWeekday.fromJson(
         serializer.fromJson<int>(json['weeklyResetWeekday']),
       ),
@@ -274,8 +274,8 @@ class Game extends DataClass implements Insertable<Game> {
       'gameType': serializer.toJson<int>(
         $GamesTable.$convertergameType.toJson(gameType),
       ),
-      'dailyResetHour': serializer.toJson<int>(dailyResetHour),
-      'dailyResetMinute': serializer.toJson<int>(dailyResetMinute),
+      'gameResetHour': serializer.toJson<int>(gameResetHour),
+      'gameResetMinute': serializer.toJson<int>(gameResetMinute),
       'weeklyResetWeekday': serializer.toJson<int>(
         $GamesTable.$converterweeklyResetWeekday.toJson(weeklyResetWeekday),
       ),
@@ -287,16 +287,16 @@ class Game extends DataClass implements Insertable<Game> {
     String? id,
     String? name,
     GameType? gameType,
-    int? dailyResetHour,
-    int? dailyResetMinute,
+    int? gameResetHour,
+    int? gameResetMinute,
     Weekday? weeklyResetWeekday,
     DateTime? createdAt,
   }) => Game(
     id: id ?? this.id,
     name: name ?? this.name,
     gameType: gameType ?? this.gameType,
-    dailyResetHour: dailyResetHour ?? this.dailyResetHour,
-    dailyResetMinute: dailyResetMinute ?? this.dailyResetMinute,
+    gameResetHour: gameResetHour ?? this.gameResetHour,
+    gameResetMinute: gameResetMinute ?? this.gameResetMinute,
     weeklyResetWeekday: weeklyResetWeekday ?? this.weeklyResetWeekday,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -305,12 +305,12 @@ class Game extends DataClass implements Insertable<Game> {
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       gameType: data.gameType.present ? data.gameType.value : this.gameType,
-      dailyResetHour: data.dailyResetHour.present
-          ? data.dailyResetHour.value
-          : this.dailyResetHour,
-      dailyResetMinute: data.dailyResetMinute.present
-          ? data.dailyResetMinute.value
-          : this.dailyResetMinute,
+      gameResetHour: data.gameResetHour.present
+          ? data.gameResetHour.value
+          : this.gameResetHour,
+      gameResetMinute: data.gameResetMinute.present
+          ? data.gameResetMinute.value
+          : this.gameResetMinute,
       weeklyResetWeekday: data.weeklyResetWeekday.present
           ? data.weeklyResetWeekday.value
           : this.weeklyResetWeekday,
@@ -324,8 +324,8 @@ class Game extends DataClass implements Insertable<Game> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('gameType: $gameType, ')
-          ..write('dailyResetHour: $dailyResetHour, ')
-          ..write('dailyResetMinute: $dailyResetMinute, ')
+          ..write('gameResetHour: $gameResetHour, ')
+          ..write('gameResetMinute: $gameResetMinute, ')
           ..write('weeklyResetWeekday: $weeklyResetWeekday, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -337,8 +337,8 @@ class Game extends DataClass implements Insertable<Game> {
     id,
     name,
     gameType,
-    dailyResetHour,
-    dailyResetMinute,
+    gameResetHour,
+    gameResetMinute,
     weeklyResetWeekday,
     createdAt,
   );
@@ -349,8 +349,8 @@ class Game extends DataClass implements Insertable<Game> {
           other.id == this.id &&
           other.name == this.name &&
           other.gameType == this.gameType &&
-          other.dailyResetHour == this.dailyResetHour &&
-          other.dailyResetMinute == this.dailyResetMinute &&
+          other.gameResetHour == this.gameResetHour &&
+          other.gameResetMinute == this.gameResetMinute &&
           other.weeklyResetWeekday == this.weeklyResetWeekday &&
           other.createdAt == this.createdAt);
 }
@@ -359,8 +359,8 @@ class GamesCompanion extends UpdateCompanion<Game> {
   final Value<String> id;
   final Value<String> name;
   final Value<GameType> gameType;
-  final Value<int> dailyResetHour;
-  final Value<int> dailyResetMinute;
+  final Value<int> gameResetHour;
+  final Value<int> gameResetMinute;
   final Value<Weekday> weeklyResetWeekday;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -368,8 +368,8 @@ class GamesCompanion extends UpdateCompanion<Game> {
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.gameType = const Value.absent(),
-    this.dailyResetHour = const Value.absent(),
-    this.dailyResetMinute = const Value.absent(),
+    this.gameResetHour = const Value.absent(),
+    this.gameResetMinute = const Value.absent(),
     this.weeklyResetWeekday = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -378,23 +378,23 @@ class GamesCompanion extends UpdateCompanion<Game> {
     required String id,
     required String name,
     required GameType gameType,
-    required int dailyResetHour,
-    required int dailyResetMinute,
+    required int gameResetHour,
+    required int gameResetMinute,
     required Weekday weeklyResetWeekday,
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
        gameType = Value(gameType),
-       dailyResetHour = Value(dailyResetHour),
-       dailyResetMinute = Value(dailyResetMinute),
+       gameResetHour = Value(gameResetHour),
+       gameResetMinute = Value(gameResetMinute),
        weeklyResetWeekday = Value(weeklyResetWeekday);
   static Insertable<Game> custom({
     Expression<String>? id,
     Expression<String>? name,
     Expression<int>? gameType,
-    Expression<int>? dailyResetHour,
-    Expression<int>? dailyResetMinute,
+    Expression<int>? gameResetHour,
+    Expression<int>? gameResetMinute,
     Expression<int>? weeklyResetWeekday,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -403,8 +403,8 @@ class GamesCompanion extends UpdateCompanion<Game> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (gameType != null) 'game_type': gameType,
-      if (dailyResetHour != null) 'daily_reset_hour': dailyResetHour,
-      if (dailyResetMinute != null) 'daily_reset_minute': dailyResetMinute,
+      if (gameResetHour != null) 'game_reset_hour': gameResetHour,
+      if (gameResetMinute != null) 'game_reset_minute': gameResetMinute,
       if (weeklyResetWeekday != null)
         'weekly_reset_weekday': weeklyResetWeekday,
       if (createdAt != null) 'created_at': createdAt,
@@ -416,8 +416,8 @@ class GamesCompanion extends UpdateCompanion<Game> {
     Value<String>? id,
     Value<String>? name,
     Value<GameType>? gameType,
-    Value<int>? dailyResetHour,
-    Value<int>? dailyResetMinute,
+    Value<int>? gameResetHour,
+    Value<int>? gameResetMinute,
     Value<Weekday>? weeklyResetWeekday,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -426,8 +426,8 @@ class GamesCompanion extends UpdateCompanion<Game> {
       id: id ?? this.id,
       name: name ?? this.name,
       gameType: gameType ?? this.gameType,
-      dailyResetHour: dailyResetHour ?? this.dailyResetHour,
-      dailyResetMinute: dailyResetMinute ?? this.dailyResetMinute,
+      gameResetHour: gameResetHour ?? this.gameResetHour,
+      gameResetMinute: gameResetMinute ?? this.gameResetMinute,
       weeklyResetWeekday: weeklyResetWeekday ?? this.weeklyResetWeekday,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -448,11 +448,11 @@ class GamesCompanion extends UpdateCompanion<Game> {
         $GamesTable.$convertergameType.toSql(gameType.value),
       );
     }
-    if (dailyResetHour.present) {
-      map['daily_reset_hour'] = Variable<int>(dailyResetHour.value);
+    if (gameResetHour.present) {
+      map['game_reset_hour'] = Variable<int>(gameResetHour.value);
     }
-    if (dailyResetMinute.present) {
-      map['daily_reset_minute'] = Variable<int>(dailyResetMinute.value);
+    if (gameResetMinute.present) {
+      map['game_reset_minute'] = Variable<int>(gameResetMinute.value);
     }
     if (weeklyResetWeekday.present) {
       map['weekly_reset_weekday'] = Variable<int>(
@@ -476,8 +476,8 @@ class GamesCompanion extends UpdateCompanion<Game> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('gameType: $gameType, ')
-          ..write('dailyResetHour: $dailyResetHour, ')
-          ..write('dailyResetMinute: $dailyResetMinute, ')
+          ..write('gameResetHour: $gameResetHour, ')
+          ..write('gameResetMinute: $gameResetMinute, ')
           ..write('weeklyResetWeekday: $weeklyResetWeekday, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -2261,8 +2261,8 @@ typedef $$GamesTableCreateCompanionBuilder =
       required String id,
       required String name,
       required GameType gameType,
-      required int dailyResetHour,
-      required int dailyResetMinute,
+      required int gameResetHour,
+      required int gameResetMinute,
       required Weekday weeklyResetWeekday,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -2272,8 +2272,8 @@ typedef $$GamesTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<GameType> gameType,
-      Value<int> dailyResetHour,
-      Value<int> dailyResetMinute,
+      Value<int> gameResetHour,
+      Value<int> gameResetMinute,
       Value<Weekday> weeklyResetWeekday,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -2370,13 +2370,13 @@ class $$GamesTableFilterComposer extends Composer<_$AppDatabase, $GamesTable> {
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
-  ColumnFilters<int> get dailyResetHour => $composableBuilder(
-    column: $table.dailyResetHour,
+  ColumnFilters<int> get gameResetHour => $composableBuilder(
+    column: $table.gameResetHour,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get dailyResetMinute => $composableBuilder(
-    column: $table.dailyResetMinute,
+  ColumnFilters<int> get gameResetMinute => $composableBuilder(
+    column: $table.gameResetMinute,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2491,13 +2491,13 @@ class $$GamesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get dailyResetHour => $composableBuilder(
-    column: $table.dailyResetHour,
+  ColumnOrderings<int> get gameResetHour => $composableBuilder(
+    column: $table.gameResetHour,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get dailyResetMinute => $composableBuilder(
-    column: $table.dailyResetMinute,
+  ColumnOrderings<int> get gameResetMinute => $composableBuilder(
+    column: $table.gameResetMinute,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2530,13 +2530,13 @@ class $$GamesTableAnnotationComposer
   GeneratedColumnWithTypeConverter<GameType, int> get gameType =>
       $composableBuilder(column: $table.gameType, builder: (column) => column);
 
-  GeneratedColumn<int> get dailyResetHour => $composableBuilder(
-    column: $table.dailyResetHour,
+  GeneratedColumn<int> get gameResetHour => $composableBuilder(
+    column: $table.gameResetHour,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get dailyResetMinute => $composableBuilder(
-    column: $table.dailyResetMinute,
+  GeneratedColumn<int> get gameResetMinute => $composableBuilder(
+    column: $table.gameResetMinute,
     builder: (column) => column,
   );
 
@@ -2661,8 +2661,8 @@ class $$GamesTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<GameType> gameType = const Value.absent(),
-                Value<int> dailyResetHour = const Value.absent(),
-                Value<int> dailyResetMinute = const Value.absent(),
+                Value<int> gameResetHour = const Value.absent(),
+                Value<int> gameResetMinute = const Value.absent(),
                 Value<Weekday> weeklyResetWeekday = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -2670,8 +2670,8 @@ class $$GamesTableTableManager
                 id: id,
                 name: name,
                 gameType: gameType,
-                dailyResetHour: dailyResetHour,
-                dailyResetMinute: dailyResetMinute,
+                gameResetHour: gameResetHour,
+                gameResetMinute: gameResetMinute,
                 weeklyResetWeekday: weeklyResetWeekday,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -2681,8 +2681,8 @@ class $$GamesTableTableManager
                 required String id,
                 required String name,
                 required GameType gameType,
-                required int dailyResetHour,
-                required int dailyResetMinute,
+                required int gameResetHour,
+                required int gameResetMinute,
                 required Weekday weeklyResetWeekday,
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -2690,8 +2690,8 @@ class $$GamesTableTableManager
                 id: id,
                 name: name,
                 gameType: gameType,
-                dailyResetHour: dailyResetHour,
-                dailyResetMinute: dailyResetMinute,
+                gameResetHour: gameResetHour,
+                gameResetMinute: gameResetMinute,
                 weeklyResetWeekday: weeklyResetWeekday,
                 createdAt: createdAt,
                 rowid: rowid,

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class WorkoutShell extends StatelessWidget {
+class GameShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
-  const WorkoutShell({super.key,required this.navigationShell});
+  const GameShell({super.key,required this.navigationShell});
 
   @override
   Widget build(BuildContext context) {

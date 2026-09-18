@@ -1,85 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../models/game_type.dart';
-import '/widgets/custom_app_bar.dart';
-import '../models/game.dart';
-import '../models/weekday.dart';
 import '../widgets/custom_dotted_button.dart';
-import '../widgets/questProgressBadge.dart';
+import '../widgets/game_list_tile.dart';
+
 
 class GameMainPage extends StatelessWidget {
-  GameMainPage({super.key});
-  final dummyGames = [
-    Game(
-      id: '1',
-      userId: null, // 로그인 전 상태
-      name: '로스트아크',
-      gameType: GameType.rpg,
-      gameResetHour: 6,
-      gameResetMinute: 0,
-      weeklyResetWeekday: Weekday.wednesday, // 수요일 리셋
-    ),
-    Game(
-      id: '2',
-      userId: null,
-      name: '메이플스토리',
-      gameType: GameType.rpg,
-      gameResetHour: 0,
-      gameResetMinute: 0,
-      weeklyResetWeekday: Weekday.thursday, // 목요일 리셋
-    ),
-    Game(
-      id: '3',
-      userId: null,
-      name: '명조',
-      gameType: GameType.mobile,
-      gameResetHour: 5,
-      gameResetMinute: 0,
-      weeklyResetWeekday: Weekday.monday, // 목요일 리셋
-    ),
-    Game(
-      id: '4',
-      userId: null,
-      name: '젠레스존제로',
-      gameType: GameType.mobile,
-      gameResetHour: 5,
-      gameResetMinute: 0,
-      weeklyResetWeekday: Weekday.monday, // 목요일 리셋
-    ),
-    Game(
-      id: '4',
-      userId: null,
-      name: '젠레스존제로',
-      gameType: GameType.mobile,
-      gameResetHour: 5,
-      gameResetMinute: 0,
-      weeklyResetWeekday: Weekday.monday, // 목요일 리셋
-    ),
-    Game(
-      id: '4',
-      userId: null,
-      name: '젠레스존제로',
-      gameType: GameType.mobile,
-      gameResetHour: 5,
-      gameResetMinute: 0,
-      weeklyResetWeekday: Weekday.monday, // 목요일 리셋
-    ),
-    Game(
-      id: '4',
-      userId: null,
-      name: '젠레스존제로',
-      gameType: GameType.mobile,
-      gameResetHour: 5,
-      gameResetMinute: 0,
-      weeklyResetWeekday: Weekday.monday, // 목요일 리셋
-    ),
-  ];
-
+  const GameMainPage({super.key});
+  
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -103,18 +34,7 @@ class GameMainPage extends StatelessWidget {
             Expanded(
               child: ScrollConfiguration(
                 behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
-                child: ListView(
-                  shrinkWrap: true,
-                  physics: ClampingScrollPhysics(),
-                  children: [
-                    ...GameListTile(
-                      context,
-                      textTheme,
-                      colorScheme,
-                      dummyGames.length,
-                    ),
-                  ],
-                ),
+                child: GameListTile(),
               ),
             ),
             CustomDottedButton(
@@ -168,82 +88,5 @@ class GameMainPage extends StatelessWidget {
     );
   }
 
-  List<Widget> GameListTile(
-    BuildContext context,
-    TextTheme textTheme,
-    ColorScheme colorScheme,
-    int leng,
-  ) {
-    List<Widget> list = [];
-    List<Color> colors = [Colors.red, Colors.blue, Colors.yellow];
-    List<Color> colorsShade = [
-      Colors.red.shade100,
-      Colors.blue.shade100,
-      Colors.yellow.shade100,
-    ];
-    int count = 0;
-    for (int i = 0; i < leng; i++) {
-      if (count % colors.length == 0) count = 0;
-      list.add(
-        Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: ListTile(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(7),
-            ),
-            tileColor: Colors.white,
-            leading: Container(
-              height: 40,
-              width: 40,
-              decoration: BoxDecoration(
-                color: colorsShade[count],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Text(
-                  '${dummyGames[i].name[0]}',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colors[count],
-                    fontSize: 20,
-                  ),
-                ),
-              ),
-            ),
-            title: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${dummyGames[i].name}',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  '${dummyGames[i].gameType.name}',
-                  style: textTheme.bodyMedium,
-                ),
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                QuestProgressBadge(
-                  textTheme: textTheme,
-                  colorScheme: colorScheme,
-                ),
-                IconButton(
-                  onPressed: () {
-                    context.push('/game_main_page/game_detail_page');
-                  },
-                  icon: Icon(Icons.arrow_forward_ios),
-                ),
-              ],
-            ), //trailing: ,
-          ),
-        ),
-      );
-      count++;
-    }
-    return list;
-  }
+  
 }

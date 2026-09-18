@@ -15,7 +15,7 @@ class _MyPageState extends State<MyPage> {
   String? email;
   String? profileImageURL;
   bool _isEditing = false;
-  bool isLogined = false; //임시 로그인 상태 확인
+  bool isLoggedIn = false; //임시 로그인 상태 확인
 
   List<List<dynamic>> menu = [
     [Icon(Icons.notifications_none), Text('알림 설정'),'/my_page/notification_settings_page'],
@@ -76,7 +76,7 @@ class _MyPageState extends State<MyPage> {
                                 ),
                               ),
                             ),
-                            if (isLogined)
+                            if (isLoggedIn)
                               Positioned(
                                 bottom: 5,
                                 right: 20,
@@ -103,7 +103,7 @@ class _MyPageState extends State<MyPage> {
                         ),
                       ),
                       SizedBox(width: 12,),
-                      if (isLogined) //임시 로그인 상태일때
+                      if (isLoggedIn) //임시 로그인 상태일때
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -138,7 +138,7 @@ class _MyPageState extends State<MyPage> {
                             ],
                           ),
                         ),
-                      if (isLogined) //임시 로그인 상태일때
+                      if (isLoggedIn) //임시 로그인 상태일때
                         IconButton(
                           onPressed: () {
                             setState(() {
@@ -147,7 +147,7 @@ class _MyPageState extends State<MyPage> {
                           },
                           icon: Icon(Icons.edit),
                         ),
-                      if (!isLogined) //임시 로그아웃 상태일때
+                      if (!isLoggedIn) //임시 로그아웃 상태일때
                         Padding(
                           padding: const EdgeInsets.only(left: 10.0),
                           child: Column(
@@ -181,7 +181,7 @@ class _MyPageState extends State<MyPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ...getMenuList(menu),
-                      if (isLogined) //임시 로그인 상태
+                      if (isLoggedIn) //임시 로그인 상태
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -205,16 +205,16 @@ class _MyPageState extends State<MyPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          isLogined ? Icon(Icons.logout) : Icon(Icons.login),
+                          isLoggedIn ? Icon(Icons.logout) : Icon(Icons.login),
                           TextButton(
                             onPressed: () {
                               setState(() {
-                                isLogined = !isLogined; // 임시 로그인/로그아웃 상태로 변경
-                                if(isLogined) context.go('my_page/login_page');
+                                isLoggedIn = !isLoggedIn; // 임시 로그인/로그아웃 상태로 변경
+                                if(isLoggedIn) context.go('my_page/login_page');
                               });
                             },
                             child: Text(
-                              isLogined ? '로그아웃' : '로그인',
+                              isLoggedIn ? '로그아웃' : '로그인',
                               style: TextStyle(color: colorScheme.primary),
                             ),
                           ),

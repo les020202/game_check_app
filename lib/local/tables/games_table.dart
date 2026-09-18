@@ -7,8 +7,8 @@ class Games extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
   IntColumn get gameType => intEnum<GameType>()();
-  IntColumn get dailyResetHour => integer()();
-  IntColumn get dailyResetMinute => integer()();
+  IntColumn get gameResetHour => integer()();
+  IntColumn get gameResetMinute => integer()();
   IntColumn get weeklyResetWeekday => intEnum<Weekday>()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
