@@ -4,6 +4,7 @@ import '../../models/quest_category.dart';
 import 'characters_table.dart';
 import 'games_table.dart';
 
+@DataClassName('CharacterQuestItemEntity')
 class CharacterQuestItems extends Table {
   TextColumn get id => text()();
   TextColumn get gameId => text().references(Games, #id)();

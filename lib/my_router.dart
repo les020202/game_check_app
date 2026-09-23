@@ -8,7 +8,6 @@ import 'pages/game_detail_week_page.dart';
 import 'pages/game_main_page.dart';
 import 'pages/game_setup_page.dart';
 import 'pages/inquiry_form_page.dart';
-import 'pages/landing_page.dart';
 import 'pages/login_page.dart';
 import 'pages/mail_check_page.dart';
 import 'pages/my_page.dart';
@@ -30,10 +29,13 @@ final GlobalKey<NavigatorState> _homeTabNavigatorKey =
 final GlobalKey<NavigatorState> _profileTabNavigatorKey =
     GlobalKey<NavigatorState>(debugLabel: 'profileTab');
 
-final GoRouter router = GoRouter(
-  navigatorKey: _rootNavigatorKey,
+GoRouter createRouter(bool onboardingDone) {
+  return GoRouter(
+    navigatorKey: _rootNavigatorKey,
+    initialLocation: onboardingDone
+        ? '/game_main_page'
+        : '/',
   routes: <RouteBase>[
-    //GoRoute(path: '/', builder: (context, state) => LandingPage()),
     GoRoute(
       path: '/',
       builder: (context, state) => OnboardingGameTypePage(),
@@ -73,8 +75,13 @@ final GoRouter router = GoRouter(
                   },
                   routes: [
                     GoRoute(
-                      path: 'game_detail_week_page',
-                      builder: (context, state) => GameDetailWeekPage(),
+                      path: 'game_detail_week_page/:games_index',
+                      builder: (context, state) {
+                        String? gamesIndexString =
+                        state.pathParameters['games_index'];
+                      final gamesIndex = int.parse(gamesIndexString!);
+                      return GameDetailWeekPage(gamesIndex: gamesIndex);
+                      }
                     ),
                   ],
                 ),
@@ -155,3 +162,4 @@ final GoRouter router = GoRouter(
     ),
   ],
 );
+}

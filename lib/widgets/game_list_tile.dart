@@ -7,8 +7,8 @@ import '../models/daily_quest_item.dart';
 import '../models/day_quest_status.dart';
 import '../models/game.dart';
 import '../viewmodel/provider/game_provider.dart';
-import 'questProgressBadge.dart';
-
+import '../widgets/questProgressBadge.dart';
+import '../quest_period.dart';
 class GameListTile extends StatelessWidget {
   GameListTile({super.key});
 
@@ -37,11 +37,13 @@ class GameListTile extends StatelessWidget {
             Game game = gameProvider.games[index];
             List<Character> characters = gameProvider.characters(game.id);
             List<DailyQuestItem> dailyQuests = gameProvider.dailyQuests(game.id);
+            final todayPeriod = todayPeriodFor(game);
+
             for(var character in characters){
               int dailyCount=0;
               int allCount=dailyQuests.length;
               for (var item in dailyQuests) {
-                final log = gameProvider.questLogs(item.id, characterId: character.id);
+                final log = gameProvider.questLogs(item.id, characterId: character.id, periodDate: todayPeriod,);
                 if (log?.isCompleted == true) dailyCount++; 
               }
               if(dailyQuests.isEmpty){}
@@ -64,7 +66,7 @@ class GameListTile extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      '${games[index].name[0]}',
+                      '${game.name[0]}',
                       style: textTheme.bodyMedium?.copyWith(
                         color: colors[count],
                         fontSize: 20,
@@ -76,13 +78,13 @@ class GameListTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${games[index].name}',
+                      '${game.name}',
                       style: textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
-                      '${games[index].gameType.name}',
+                      '${game.gameType.name}',
                       style: textTheme.bodyMedium,
                     ),
                   ],

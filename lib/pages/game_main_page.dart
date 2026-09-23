@@ -1,17 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import '../viewmodel/provider/game_provider.dart';
 import '../widgets/custom_dotted_button.dart';
 import '../widgets/game_list_tile.dart';
+import '../quest_period.dart';
 
 
-class GameMainPage extends StatelessWidget {
+class GameMainPage extends StatefulWidget {
   const GameMainPage({super.key});
-  
+
+  @override
+  State<GameMainPage> createState() => _GameMainPageState();
+}
+
+class _GameMainPageState extends State<GameMainPage> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAll());
+  }
+
+  Future<void> _loadAll() async {
+    final gp = Provider.of<GameProvider>(context, listen: false);
+
+    await gp.loadGames();
+
+    for (final game in gp.games) {
+      await gp.loadCharacters(game.id);
+      await gp.loadDailyQuests(game.id);
+
+      final characters = gp.characters(game.id);
+      final dailyQuests = gp.dailyQuests(game.id);
+      final todayPeriod = todayPeriodFor(game);
+
+      for (final daily in dailyQuests) {
+        for (final character in characters) {
+          await gp.loadQuestLog(daily.id, characterId: character.id, periodDate: todayPeriod,);
+        }
+      }
+    }
+
+    if (mounted) setState(() => _isLoading = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
-
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -87,6 +128,4 @@ class GameMainPage extends StatelessWidget {
       ),
     );
   }
-
-  
 }

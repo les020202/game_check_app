@@ -13,6 +13,10 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool isChecked=false;
+  final _formKey=GlobalKey<FormState>();
+
+  String? email;
+  String? password;
 
   @override
   Widget build(BuildContext context) {
@@ -25,124 +29,154 @@ class _LoginPageState extends State<LoginPage> {
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: colorScheme.onPrimary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text('로그인',style: textTheme.displaySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),),
-                  SizedBox(height: 12,),
-                  TextFormField(
-                    style: TextStyle(color: Colors.black),
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      labelStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.w500,),
-                      filled: true,
-                      fillColor: Colors.grey.shade200,
-                      hintText: 'example@example.com',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+            child: Form(
+              key: _formKey,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.onPrimary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text('로그인',style: textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),),
+                    SizedBox(height: 12,),
+                    TextFormField(
+                      style: TextStyle(color: Colors.black),
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        labelStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.w500,),
+                        filled: true,
+                        fillColor: Colors.grey.shade200,
+                        hintText: 'example@example.com',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: Icon(Icons.email_outlined),
                       ),
-                      prefixIcon: Icon(Icons.email_outlined),
+                      keyboardType: TextInputType.emailAddress,
+                      validator:(value) {
+                        if(value==null || value.isEmpty){
+                          return '이메일을 입력하세요';
+                        }
+                        if(!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)){
+                          return '올바른 이메일 형식을 입력하세요';
+                        }
+                        return null;
+                      },
+                      onSaved: (value){
+                        email = value;
+                      },
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  TextFormField(
-                    style: TextStyle(color: Colors.black),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.w500,),
-                      filled: true,
-                      fillColor: Colors.grey.shade200,
-                      prefixIcon: Icon(Icons.lock_outline, color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
+                    SizedBox(height: 20),
+                    TextFormField(
+                      style: TextStyle(color: Colors.black),
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        labelStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.w500,),
+                        filled: true,
+                        fillColor: Colors.grey.shade200,
+                        prefixIcon: Icon(Icons.lock_outline, color: Colors.black),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
+                      obscureText: true,
+                      validator: (value) {
+                        if(value==null || value.isEmpty){
+                          return '비밀번호를 입력하세요';
+                        }
+                        if(value.length<6){
+                          return '비밀번호는 최소 6자 이상이어야 합니다';
+                        }
+                        return null;
+                      },
+                      onSaved: (value){
+                        password=value;
+                      },
                     ),
-                    obscureText: true,
-                  ),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: isChecked, 
-                        onChanged: (value) {
-                          setState(() {
-                            isChecked=!isChecked;
-                          });
-                        },
-                      ),
-                      Text('자동 로그인',style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w400,
-                      ),),
-                      Spacer(),
-                      TextButton(
-                        onPressed: () {
-                          context.go('my_page/login_page/reset_password_page');
-                        },
-                        child: Text('비밀번호를 잊으셨나요?'),
-                      )
-                    ],
-                  ),
-                  CustomButton(
-                    customText: '로그인',
-                    onPressed: () {
-                      
-                    },
-                    backgroundColors: colorScheme.primary,
-                    fontStyle: textTheme.bodyMedium!.copyWith(
-                      color: colorScheme.onPrimary,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  SizedBox(
-                    height: 30,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    Row(
                       children: [
-                        Expanded(child: Container(height: 1,color: colorScheme.outlineVariant,)),
-                        Text('  또는  ',style: textTheme.bodyMedium?.copyWith(
+                        Checkbox(
+                          value: isChecked, 
+                          onChanged: (value) {
+                            setState(() {
+                              isChecked=!isChecked;
+                            });
+                          },
+                        ),
+                        Text('자동 로그인',style: textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w400,
                         ),),
-                        Expanded(child: Container(height: 1,color: colorScheme.outlineVariant,)),
+                        Spacer(),
+                        TextButton(
+                          onPressed: () {
+                            context.go('my_page/login_page/reset_password_page');
+                          },
+                          child: Text('비밀번호를 잊으셨나요?'),
+                        )
                       ],
                     ),
-                  ),
-                  CustomButton(
-                    customText: 'Google로 계속하기',
-                    onPressed: () {
-                      
-                    },
-                    backgroundColors: colorScheme.onPrimary,
-                    fontStyle: textTheme.bodyMedium!.copyWith(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.w400,
+                    CustomButton(
+                      customText: '로그인',
+                      onPressed: () {
+                        if(_formKey.currentState?.validate()??false){
+                          _formKey.currentState?.save();
+                        }
+                      },
+                      backgroundColors: colorScheme.primary,
+                      fontStyle: textTheme.bodyMedium!.copyWith(
+                        color: colorScheme.onPrimary,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                    borderSide: BorderSide(color: colorScheme.primary),
-                  ),
-                  SizedBox(height: 24,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('계정이 없으신가요?'),
-                      TextButton(
-                        onPressed: () {
-                          context.go('/my_page/login_page/registration_page');
-                        },
-                        child: Text('회원가입'),
-                      )
-                    ],
-                  ),
-                  SizedBox(height: 24,),
-                ],
+                    SizedBox(
+                      height: 30,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Expanded(child: Container(height: 1,color: colorScheme.outlineVariant,)),
+                          Text('  또는  ',style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w400,
+                          ),),
+                          Expanded(child: Container(height: 1,color: colorScheme.outlineVariant,)),
+                        ],
+                      ),
+                    ),
+                    CustomButton(
+                      customText: 'Google로 계속하기',
+                      onPressed: () {
+                        
+                      },
+                      backgroundColors: colorScheme.onPrimary,
+                      fontStyle: textTheme.bodyMedium!.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                    SizedBox(height: 24,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('계정이 없으신가요?'),
+                        TextButton(
+                          onPressed: () {
+                            context.go('/my_page/login_page/registration_page');
+                          },
+                          child: Text('회원가입'),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 24,),
+                  ],
+                ),
               ),
             ),
           ),

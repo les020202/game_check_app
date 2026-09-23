@@ -28,7 +28,7 @@ class GameSetupPage extends StatefulWidget {
 
 class _GameSetupPageState extends State<GameSetupPage> {
   final _formKey = GlobalKey<FormState>();
-
+  bool _isLoading = false;
   final weekList = ['월', '화', '수', '목', '금', '토', '일'];
 
   int weekSelectedIndex = 1;
@@ -58,13 +58,15 @@ class _GameSetupPageState extends State<GameSetupPage> {
   Set<String> originalDailyIds = {};
   Set<String> originalCharacterIds = {};
   Set<String> originalCharacterQuestIds = {};
+
   @override
   void initState() {
     super.initState();
     isEditing = widget.gamesIndex != null;
 
     if (isEditing) {
-      _loadExistingGame();
+      _isLoading = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadExistingGame());
     } else {
       gameId = uuid.v4();
       final firstId = uuid.v4();
@@ -77,15 +79,21 @@ class _GameSetupPageState extends State<GameSetupPage> {
     }
   }
 
-  void _loadExistingGame() {
+  Future<void> _loadExistingGame() async {
     final gp = Provider.of<GameProvider>(context, listen: false);
+
+    if (gp.games.length <= widget.gamesIndex!) {
+      await gp.loadGames();
+    }
     final game = gp.games[widget.gamesIndex!];
-    gameId = game.id; // 기존 id 그대로 재사용 — 새 uuid 발급하지 않음
+    gameId = game.id;
+
+    await gp.loadDailyQuests(game.id);
+    await gp.loadCharacters(game.id);
+    await gp.loadCharacterQuests(game.id);
 
     newGameName = game.name;
-    isTypeChecked = game.gameType == GameType.rpg
-        ? [true, false]
-        : [false, true];
+    isTypeChecked = game.gameType == GameType.rpg ? [true, false] : [false, true];
     newGameResetHour = game.gameResetHour;
     newGameResetMinute = game.gameResetMinute;
     weekSelectedIndex = game.weeklyResetWeekday.value;
@@ -107,32 +115,24 @@ class _GameSetupPageState extends State<GameSetupPage> {
       newCharacterName.add(c.name);
 
       weeklyQuestsByCharacter[c.id] = allCharacterQuests
-          .where(
-            (q) => q.category == QuestCategory.weekly && q.characterId == c.id,
-          )
+          .where((q) => q.category == QuestCategory.weekly && q.characterId == c.id)
           .map((q) => EditableQuestItem(id: q.id, name: q.name))
           .toList();
 
       monthlyQuestsByCharacter[c.id] = allCharacterQuests
-          .where(
-            (q) => q.category == QuestCategory.monthly && q.characterId == c.id,
-          )
+          .where((q) => q.category == QuestCategory.monthly && q.characterId == c.id)
           .map((q) => EditableQuestItem(id: q.id, name: q.name))
           .toList();
 
       goalQuestsByCharacter[c.id] = allCharacterQuests
-          .where(
-            (q) => q.category == QuestCategory.goal && q.characterId == c.id,
-          )
-          .map(
-            (q) => EditableQuestItem(
-              id: q.id,
-              name: q.name,
-              memo: q.memo,
-              dueMonth: q.dueDate?.month,
-              dueDay: q.dueDate?.day,
-            ),
-          )
+          .where((q) => q.category == QuestCategory.goal && q.characterId == c.id)
+          .map((q) => EditableQuestItem(
+                id: q.id,
+                name: q.name,
+                memo: q.memo,
+                dueMonth: q.dueDate?.month,
+                dueDay: q.dueDate?.day,
+              ))
           .toList();
     }
 
@@ -147,12 +147,17 @@ class _GameSetupPageState extends State<GameSetupPage> {
       goalQuestsByCharacter[firstId] = [];
       selectedCharacterId = firstId;
     }
+
+    if (mounted) setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       appBar: CustomAppBar(title: newGameName ?? '새 게임 추가'),
       body: SafeArea(
@@ -482,7 +487,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         fontWeight: FontWeight.w700,
                         color: colorScheme.onPrimary,
                       ),
-                      onPressed: () {
+                      onPressed: () async{
                         final gp = Provider.of<GameProvider>(
                           context,
                           listen: false,
@@ -506,12 +511,12 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         );
 
                         if (isEditing) {
-                          gp.updateGame(
+                          await gp.updateGame(
                             gp.games[widget.gamesIndex!].id,
                             newGame,
                           );
                         } else {
-                          gp.addGame(newGame);
+                          await gp.addGame(newGame);
                         }
 
                         final dailyQuestsToSave = isDailyChecked
@@ -537,14 +542,14 @@ class _GameSetupPageState extends State<GameSetupPage> {
                             currentDailyIds,
                           );
                           for (final id in removedDailyIds) {
-                            gp.deleteDailyById(id);
+                            await gp.deleteDailyById(id);
                           }
                         }
                         for (final item in dailyQuestsToSave) {
                           if (item.id != null) {
-                            gp.updateDailyQuestName(item.id!, item.name);
+                            await gp.updateDailyQuestName(item.id!, item.name);
                           } else {
-                            gp.addDaily(
+                            await gp.addDaily(
                               DailyQuestItem(
                                 id: uuid.v4(),
                                 gameId: gameId!,
@@ -560,15 +565,15 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           final removedCharacterIds = originalCharacterIds
                               .difference(currentCharacterIds);
                           for (final id in removedCharacterIds) {
-                            gp.deleteCharacterById(id);
+                            await gp.deleteCharacterById(id);
                           }
                         }
                         for (int i = 0; i < newCharacterIds.length; i++) {
                           final id = newCharacterIds[i];
                           if (isEditing && originalCharacterIds.contains(id)) {
-                            gp.updateCharacterName(id, newCharacterName[i]);
+                            await gp.updateCharacterName(id, newCharacterName[i]);
                           } else {
-                            gp.addCharacter(
+                            await gp.addCharacter(
                               Character(
                                 id: id,
                                 gameId: gameId!,
@@ -581,10 +586,10 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         // --- 캐릭터 퀘스트(weekly+monthly+goal) diff ---
                         final allCurrentQuestIds = <String>{};
 
-                        void syncQuestList(
+                        Future<void> syncQuestList(
                           Map<String, List<EditableQuestItem>> byCharacter,
                           QuestCategory category,
-                        ) {
+                        ) async{
                           for (final characterId in byCharacter.keys) {
                             // 이미 삭제된 캐릭터에 딸린 항목은 건너뜀 (deleteCharacterById가 이미 정리함)
                             if (!newCharacterIds.contains(characterId))
@@ -593,7 +598,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                             for (final item in byCharacter[characterId]!) {
                               if (item.id != null) {
                                 allCurrentQuestIds.add(item.id!);
-                                gp.updateCharacterQuest(
+                                await gp.updateCharacterQuest(
                                   item.id!,
                                   name: item.name,
                                   memo: item.memo,
@@ -608,7 +613,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                                       : null,
                                 );
                               } else {
-                                gp.addCharacterQuest(
+                                await gp.addCharacterQuest(
                                   CharacterQuestItem(
                                     id: uuid.v4(),
                                     gameId: gameId!,
@@ -632,15 +637,15 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           }
                         }
 
-                        syncQuestList(
+                        await syncQuestList(
                           weeklyToSave,
                           QuestCategory.weekly,
                         );
-                        syncQuestList(
+                        await syncQuestList(
                           monthlyToSave,
                           QuestCategory.monthly,
                         );
-                        syncQuestList(
+                        await syncQuestList(
                           goalToSave,
                           QuestCategory.goal,
                         );
@@ -649,11 +654,11 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           final removedQuestIds = originalCharacterQuestIds
                               .difference(allCurrentQuestIds);
                           for (final id in removedQuestIds) {
-                            gp.deleteCharacterQuestById(id);
+                            await gp.deleteCharacterQuestById(id);
                           }
                         }
 
-                        context.go('/game_main_page');
+                        if (context.mounted) context.go('/game_main_page');
                       },
                       borderSide: BorderSide(color: colorScheme.primary),
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:game_check_app/models/quest_category.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -13,10 +14,11 @@ import '../models/weekday.dart';
 import '../viewmodel/provider/game_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/questProgressBadge.dart';
+import '../quest_period.dart';
 
 class GameDetailPage extends StatefulWidget {
-  int gamesIndex;
-  GameDetailPage({super.key, required this.gamesIndex});
+  final int gamesIndex;
+  const GameDetailPage({super.key, required this.gamesIndex});
 
   @override
   State<GameDetailPage> createState() => _GameDetailPageState();
@@ -24,7 +26,8 @@ class GameDetailPage extends StatefulWidget {
 
 class _GameDetailPageState extends State<GameDetailPage> {
   late DateTime _focusedDay;
-
+  bool _isLoading = true;
+  DateTime? _lastLoadedTodayPeriod;
   int characterSelectedIndex = 0;
   Map<String, bool> isDailyChecked = {};
   Map<String, bool> isWeeklyChecked = {};
@@ -56,10 +59,48 @@ class _GameDetailPageState extends State<GameDetailPage> {
   void initState() {
     super.initState();
     _focusedDay = DateTime.now();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData());
+  }
+
+  Future<void> _loadInitialData() async {
     final gp = Provider.of<GameProvider>(context, listen: false);
-    Game game = gp.games[widget.gamesIndex];
-    List<Character> characters = gp.characters(game.id);
+
+    if (gp.games.length <= widget.gamesIndex) {
+      await gp.loadGames();
+    }
+    final game = gp.games[widget.gamesIndex];
+
+    await gp.loadCharacters(game.id);
+    await gp.loadDailyQuests(game.id);
+    await gp.loadCharacterQuests(game.id);
+
+    final characters = gp.characters(game.id);
+    final dailyQuests = gp.dailyQuests(game.id);
+    final characterQuests = gp.characterQuests(game.id);
+
+    // 일일퀘스트: 캐릭터별로 로그가 다르니 전부 로드
+    final todayPeriod = _calcPeriodDate(null);
+    for (final daily in dailyQuests) {
+      for (final c in characters) {
+        await gp.loadQuestLog(
+          daily.id,
+          characterId: c.id,
+          periodDate: todayPeriod,
+        );
+      }
+    }
+    // 주간/월간/목표: characterId 없이 로드
+    for (final q in characterQuests) {
+      final period = _calcPeriodDate(
+        q.category,
+        dueDate: q.category == QuestCategory.goal ? q.dueDate : null,
+      );
+      await gp.loadQuestLog(q.id, periodDate: period);
+    }
+
+    if (!mounted) return;
     _refreshCheckedMaps(gp, game, characters);
+    setState(() => _isLoading = false);
   }
 
   void _refreshCheckedMaps(
@@ -85,26 +126,86 @@ class _GameDetailPageState extends State<GameDetailPage> {
     );
 
     final currentCharacterId = characters[characterSelectedIndex].id;
+    final todayPeriod = _calcPeriodDate(null);
+
     for (var item in dailyQuests) {
       isDailyChecked[item.id] =
-          gp.questLogs(item.id, characterId: currentCharacterId)?.isCompleted ??
+          gp
+              .questLogs(
+                item.id,
+                characterId: currentCharacterId,
+                periodDate: todayPeriod,
+              )
+              ?.isCompleted ??
           false;
     }
     for (var item in weeklyQuests) {
-      isWeeklyChecked[item.id] = gp.questLogs(item.id)?.isCompleted ?? false;
+      isWeeklyChecked[item.id] =
+          gp
+              .questLogs(item.id, periodDate: _calcPeriodDate(item.category))
+              ?.isCompleted ??
+          false;
     }
     for (var item in monthlyQuests) {
-      isMonthlyChecked[item.id] = gp.questLogs(item.id)?.isCompleted ?? false;
+      isMonthlyChecked[item.id] =
+          gp
+              .questLogs(item.id, periodDate: _calcPeriodDate(item.category))
+              ?.isCompleted ??
+          false;
     }
     for (var item in goalQuests) {
-      isGoalChecked[item.id] = gp.questLogs(item.id)?.isCompleted ?? false;
+      isGoalChecked[item.id] =
+          gp
+              .questLogs(
+                item.id,
+                periodDate: _calcPeriodDate(
+                  item.category,
+                  dueDate: item.dueDate,
+                ),
+              )
+              ?.isCompleted ??
+          false;
     }
   }
 
+  DateTime _calcPeriodDate(QuestCategory? category, {DateTime? dueDate}) {
+    final gp = Provider.of<GameProvider>(context, listen: false);
+    Game game = gp.games[widget.gamesIndex];
+
+    // 리셋 시각을 기준으로 "게임 하루"의 시작점을 계산
+    final todayPeriod = todayPeriodFor(game);
+
+    switch (category) {
+      case null:
+        return todayPeriod;
+      case QuestCategory.weekly:
+        final weekStart = weekStartFor(game);
+        return DateTime(weekStart.year, weekStart.month, weekStart.day);
+      case QuestCategory.monthly:
+        final adjustedNow = todayPeriod;
+        return DateTime(adjustedNow.year, adjustedNow.month, 1);
+      case QuestCategory.goal:
+        return DateTime(dueDate!.year, dueDate.month, dueDate.day);
+    }
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+  
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
+    if (!_isLoading) {
+      final currentTodayPeriod = _calcPeriodDate(null);
+      if (_lastLoadedTodayPeriod != null &&
+          !_isSameDay(_lastLoadedTodayPeriod!, currentTodayPeriod)) {
+        _lastLoadedTodayPeriod = currentTodayPeriod;
+        WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData());
+      } else {
+        _lastLoadedTodayPeriod ??= currentTodayPeriod;
+      }
+    }
     return Scaffold(
       appBar: CustomAppBar(
         title: '메이플스토리',
@@ -148,9 +249,10 @@ class _GameDetailPageState extends State<GameDetailPage> {
               ? 59
               : game.gameResetMinute - 1;
           final weeklyResetText =
-              '${game.weeklyResetWeekday.label} ${game.gameResetHour}:${game.gameResetMinute} ~ '
+              '${game.weeklyResetWeekday.label} ${game.gameResetHour.toString().padLeft(2, '0')}:${game.gameResetMinute.toString().padLeft(2, '0')} ~ '
               '${prevWeekday.label} $endHour:$endMinute';
           Map<String, DayQuestStatus> questStatus = {};
+          final todayPeriod = _calcPeriodDate(null);
           for (var character in characters) {
             int dailyCount = 0;
             int allDailyCount = dailyQuests.length;
@@ -158,6 +260,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
               final log = gameProvider.questLogs(
                 item.id,
                 characterId: character.id,
+                periodDate: todayPeriod,
               );
               if (log?.isCompleted == true) dailyCount++;
             }
@@ -212,7 +315,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                           ),
                           onDaySelected: (selectedDay, focusedDay) {
                             context.go(
-                              '/game_main_page/game_detail_page/${widget.gamesIndex}/game_detail_week_page',
+                              '/game_main_page/game_detail_page/${widget.gamesIndex}/game_detail_week_page/${widget.gamesIndex}',
                             );
                           },
                         ),
@@ -223,7 +326,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         colorScheme,
                         '전체 일일 퀘스트',
                         questReset:
-                            '매일 ${game.gameResetHour}:${game.gameResetMinute} 초기화',
+                            '매일 ${game.gameResetHour.toString().padLeft(2, '0')}:${game.gameResetMinute.toString().padLeft(2, '0')} 초기화',
                         questStatus: questStatus,
                         characters: characters,
                       ),
@@ -248,13 +351,13 @@ class _GameDetailPageState extends State<GameDetailPage> {
                                 onTap: () {
                                   setState(() {
                                     characterSelectedIndex = index;
-                                    final gp = Provider.of<GameProvider>(
-                                      context,
-                                      listen: false,
-                                    );
-                                    final characters = gp.characters(game.id);
-                                    _refreshCheckedMaps(gp, game, characters);
                                   });
+                                  final gp = Provider.of<GameProvider>(
+                                    context,
+                                    listen: false,
+                                  );
+                                  final characters = gp.characters(game.id);
+                                  _refreshCheckedMaps(gp, game, characters);
                                 },
                                 child: Container(
                                   padding: EdgeInsets.all(10),
@@ -262,7 +365,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                                     borderRadius: BorderRadius.circular(12),
                                     color: characterSelectedIndex == index
                                         ? Colors.blue
-                                        : colorScheme.onPrimary
+                                        : colorScheme.onPrimary,
                                   ),
                                   constraints: BoxConstraints(minWidth: 70),
                                   child: Text(
@@ -277,7 +380,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                           },
                         ),
                       ),
-                      SizedBox(height: 12,),
+                      SizedBox(height: 12),
                       Container(
                         padding: EdgeInsets.all(10),
                         decoration: BoxDecoration(
@@ -311,13 +414,14 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         ),
                       ),
                       SizedBox(height: 12),
-                      if(dailyQuests.isNotEmpty) getCheckList(
-                        textTheme,
-                        colorScheme,
-                        dailyQuests,
-                        isDailyChecked,
-                        characterId: characters[characterSelectedIndex].id,
-                      ),
+                      if (dailyQuests.isNotEmpty)
+                        getCheckList(
+                          textTheme,
+                          colorScheme,
+                          dailyQuests,
+                          isDailyChecked,
+                          characterId: characters[characterSelectedIndex].id,
+                        ),
                       SizedBox(height: 12),
                       getQuestList(
                         textTheme,
@@ -328,72 +432,79 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         allCount: weeklyQuests.length,
                       ),
                       SizedBox(height: 12),
-                      if(weeklyQuests.isNotEmpty) Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: colorScheme.onPrimary,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            ClipRRect(
-                              child: LinearProgressIndicator(
-                                value: weeklyQuests.isEmpty
-                                    ? 0
-                                    : weeklyCheckedCount(weeklyQuests) /
-                                          weeklyQuests.length,
-                                backgroundColor: Colors.grey,
-                                color: Colors.blue,
+                      if (weeklyQuests.isNotEmpty)
+                        Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: colorScheme.onPrimary,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ClipRRect(
+                                child: LinearProgressIndicator(
+                                  value: weeklyQuests.isEmpty
+                                      ? 0
+                                      : weeklyCheckedCount(weeklyQuests) /
+                                            weeklyQuests.length,
+                                  backgroundColor: Colors.grey,
+                                  color: Colors.blue,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 12),
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              itemCount: weeklyQuests.length,
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 3,
-                                    mainAxisSpacing: 1,
-                                    crossAxisSpacing: 1,
-                                    childAspectRatio: 2,
-                                  ),
-                              itemBuilder: (context, index) {
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      final id = weeklyQuests[index].id;
-                                      final newValue =
-                                          !(isWeeklyChecked[id] ?? false);
-                                      isWeeklyChecked[id] = newValue;
-                                      gameProvider.updateQuestLog(
-                                        id,
-                                        newValue,
-                                        null,
-                                      );
-                                    });
-                                  },
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      color:
-                                          isWeeklyChecked[weeklyQuests[index]
-                                              .id]!
-                                          ? Colors.blue
-                                          : colorScheme.onPrimary,
+                              SizedBox(height: 12),
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: weeklyQuests.length,
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 3,
+                                      mainAxisSpacing: 1,
+                                      crossAxisSpacing: 1,
+                                      childAspectRatio: 2,
                                     ),
-                                    child: Text('${weeklyQuests[index].name}'),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
+                                itemBuilder: (context, index) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        final id = weeklyQuests[index].id;
+                                        final newValue =
+                                            !(isWeeklyChecked[id] ?? false);
+                                        isWeeklyChecked[id] = newValue;
+                                        gameProvider.updateQuestLog(
+                                          id,
+                                          newValue,
+                                          null,
+                                          _calcPeriodDate(
+                                            weeklyQuests[index].category,
+                                          ),
+                                        );
+                                      });
+                                    },
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        color:
+                                            (isWeeklyChecked[weeklyQuests[index]
+                                                    .id] ??
+                                                false)
+                                            ? Colors.blue
+                                            : colorScheme.onPrimary,
+                                      ),
+                                      child: Text(
+                                        '${weeklyQuests[index].name}',
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
                       SizedBox(height: 12),
                       getQuestList(
                         textTheme,
@@ -404,7 +515,13 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         allCount: monthlyQuests.length,
                       ),
                       SizedBox(height: 12),
-                      if(monthlyQuests.isNotEmpty) getCheckList(textTheme,colorScheme, monthlyQuests, isMonthlyChecked),
+                      if (monthlyQuests.isNotEmpty)
+                        getCheckList(
+                          textTheme,
+                          colorScheme,
+                          monthlyQuests,
+                          isMonthlyChecked,
+                        ),
                       SizedBox(height: 12),
                       getQuestList(
                         textTheme,
@@ -415,7 +532,13 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         allCount: goalQuests.length,
                       ),
                       SizedBox(height: 12),
-                      if(goalQuests.isNotEmpty) getCheckList(textTheme,colorScheme, goalQuests, isGoalChecked),
+                      if (goalQuests.isNotEmpty)
+                        getCheckList(
+                          textTheme,
+                          colorScheme,
+                          goalQuests,
+                          isGoalChecked,
+                        ),
                     ],
                   ),
                 ),
@@ -544,7 +667,19 @@ class _GameDetailPageState extends State<GameDetailPage> {
                       context,
                       listen: false,
                     );
-                    gb.updateQuestLog(quest.id, isChecked, characterId);
+                    gb.updateQuestLog(
+                      quest.id,
+                      isChecked,
+                      characterId,
+                      _calcPeriodDate(
+                        quest.runtimeType == DailyQuestItem
+                            ? null
+                            : quest.category,
+                        dueDate: quest.runtimeType != DailyQuestItem && quest.category == QuestCategory.goal
+                            ? quest.dueDate
+                            : null,
+                      ),
+                    );
                   });
                 },
                 shape: const CircleBorder(),

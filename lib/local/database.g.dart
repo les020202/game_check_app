@@ -3,7 +3,7 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
-class $GamesTable extends Games with TableInfo<$GamesTable, Game> {
+class $GamesTable extends Games with TableInfo<$GamesTable, GameEntity> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -95,7 +95,7 @@ class $GamesTable extends Games with TableInfo<$GamesTable, Game> {
   static const String $name = 'games';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Game> instance, {
+    Insertable<GameEntity> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -147,9 +147,9 @@ class $GamesTable extends Games with TableInfo<$GamesTable, Game> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Game map(Map<String, dynamic> data, {String? tablePrefix}) {
+  GameEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Game(
+    return GameEntity(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -196,7 +196,7 @@ class $GamesTable extends Games with TableInfo<$GamesTable, Game> {
       const EnumIndexConverter<Weekday>(Weekday.values);
 }
 
-class Game extends DataClass implements Insertable<Game> {
+class GameEntity extends DataClass implements Insertable<GameEntity> {
   final String id;
   final String name;
   final GameType gameType;
@@ -204,7 +204,7 @@ class Game extends DataClass implements Insertable<Game> {
   final int gameResetMinute;
   final Weekday weeklyResetWeekday;
   final DateTime createdAt;
-  const Game({
+  const GameEntity({
     required this.id,
     required this.name,
     required this.gameType,
@@ -246,12 +246,12 @@ class Game extends DataClass implements Insertable<Game> {
     );
   }
 
-  factory Game.fromJson(
+  factory GameEntity.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Game(
+    return GameEntity(
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       gameType: $GamesTable.$convertergameType.fromJson(
@@ -283,7 +283,7 @@ class Game extends DataClass implements Insertable<Game> {
     };
   }
 
-  Game copyWith({
+  GameEntity copyWith({
     String? id,
     String? name,
     GameType? gameType,
@@ -291,7 +291,7 @@ class Game extends DataClass implements Insertable<Game> {
     int? gameResetMinute,
     Weekday? weeklyResetWeekday,
     DateTime? createdAt,
-  }) => Game(
+  }) => GameEntity(
     id: id ?? this.id,
     name: name ?? this.name,
     gameType: gameType ?? this.gameType,
@@ -300,8 +300,8 @@ class Game extends DataClass implements Insertable<Game> {
     weeklyResetWeekday: weeklyResetWeekday ?? this.weeklyResetWeekday,
     createdAt: createdAt ?? this.createdAt,
   );
-  Game copyWithCompanion(GamesCompanion data) {
-    return Game(
+  GameEntity copyWithCompanion(GamesCompanion data) {
+    return GameEntity(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       gameType: data.gameType.present ? data.gameType.value : this.gameType,
@@ -320,7 +320,7 @@ class Game extends DataClass implements Insertable<Game> {
 
   @override
   String toString() {
-    return (StringBuffer('Game(')
+    return (StringBuffer('GameEntity(')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('gameType: $gameType, ')
@@ -345,7 +345,7 @@ class Game extends DataClass implements Insertable<Game> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Game &&
+      (other is GameEntity &&
           other.id == this.id &&
           other.name == this.name &&
           other.gameType == this.gameType &&
@@ -355,7 +355,7 @@ class Game extends DataClass implements Insertable<Game> {
           other.createdAt == this.createdAt);
 }
 
-class GamesCompanion extends UpdateCompanion<Game> {
+class GamesCompanion extends UpdateCompanion<GameEntity> {
   final Value<String> id;
   final Value<String> name;
   final Value<GameType> gameType;
@@ -389,7 +389,7 @@ class GamesCompanion extends UpdateCompanion<Game> {
        gameResetHour = Value(gameResetHour),
        gameResetMinute = Value(gameResetMinute),
        weeklyResetWeekday = Value(weeklyResetWeekday);
-  static Insertable<Game> custom({
+  static Insertable<GameEntity> custom({
     Expression<String>? id,
     Expression<String>? name,
     Expression<int>? gameType,
@@ -487,7 +487,7 @@ class GamesCompanion extends UpdateCompanion<Game> {
 }
 
 class $CharactersTable extends Characters
-    with TableInfo<$CharactersTable, Character> {
+    with TableInfo<$CharactersTable, CharacterEntity> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -531,7 +531,7 @@ class $CharactersTable extends Characters
   static const String $name = 'characters';
   @override
   VerificationContext validateIntegrity(
-    Insertable<Character> instance, {
+    Insertable<CharacterEntity> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -563,9 +563,9 @@ class $CharactersTable extends Characters
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  Character map(Map<String, dynamic> data, {String? tablePrefix}) {
+  CharacterEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Character(
+    return CharacterEntity(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -587,11 +587,15 @@ class $CharactersTable extends Characters
   }
 }
 
-class Character extends DataClass implements Insertable<Character> {
+class CharacterEntity extends DataClass implements Insertable<CharacterEntity> {
   final String id;
   final String gameId;
   final String name;
-  const Character({required this.id, required this.gameId, required this.name});
+  const CharacterEntity({
+    required this.id,
+    required this.gameId,
+    required this.name,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -609,12 +613,12 @@ class Character extends DataClass implements Insertable<Character> {
     );
   }
 
-  factory Character.fromJson(
+  factory CharacterEntity.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Character(
+    return CharacterEntity(
       id: serializer.fromJson<String>(json['id']),
       gameId: serializer.fromJson<String>(json['gameId']),
       name: serializer.fromJson<String>(json['name']),
@@ -630,13 +634,14 @@ class Character extends DataClass implements Insertable<Character> {
     };
   }
 
-  Character copyWith({String? id, String? gameId, String? name}) => Character(
-    id: id ?? this.id,
-    gameId: gameId ?? this.gameId,
-    name: name ?? this.name,
-  );
-  Character copyWithCompanion(CharactersCompanion data) {
-    return Character(
+  CharacterEntity copyWith({String? id, String? gameId, String? name}) =>
+      CharacterEntity(
+        id: id ?? this.id,
+        gameId: gameId ?? this.gameId,
+        name: name ?? this.name,
+      );
+  CharacterEntity copyWithCompanion(CharactersCompanion data) {
+    return CharacterEntity(
       id: data.id.present ? data.id.value : this.id,
       gameId: data.gameId.present ? data.gameId.value : this.gameId,
       name: data.name.present ? data.name.value : this.name,
@@ -645,7 +650,7 @@ class Character extends DataClass implements Insertable<Character> {
 
   @override
   String toString() {
-    return (StringBuffer('Character(')
+    return (StringBuffer('CharacterEntity(')
           ..write('id: $id, ')
           ..write('gameId: $gameId, ')
           ..write('name: $name')
@@ -658,13 +663,13 @@ class Character extends DataClass implements Insertable<Character> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Character &&
+      (other is CharacterEntity &&
           other.id == this.id &&
           other.gameId == this.gameId &&
           other.name == this.name);
 }
 
-class CharactersCompanion extends UpdateCompanion<Character> {
+class CharactersCompanion extends UpdateCompanion<CharacterEntity> {
   final Value<String> id;
   final Value<String> gameId;
   final Value<String> name;
@@ -683,7 +688,7 @@ class CharactersCompanion extends UpdateCompanion<Character> {
   }) : id = Value(id),
        gameId = Value(gameId),
        name = Value(name);
-  static Insertable<Character> custom({
+  static Insertable<CharacterEntity> custom({
     Expression<String>? id,
     Expression<String>? gameId,
     Expression<String>? name,
@@ -742,7 +747,7 @@ class CharactersCompanion extends UpdateCompanion<Character> {
 }
 
 class $DailyQuestItemsTable extends DailyQuestItems
-    with TableInfo<$DailyQuestItemsTable, DailyQuestItem> {
+    with TableInfo<$DailyQuestItemsTable, DailyQuestItemEntity> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -786,7 +791,7 @@ class $DailyQuestItemsTable extends DailyQuestItems
   static const String $name = 'daily_quest_items';
   @override
   VerificationContext validateIntegrity(
-    Insertable<DailyQuestItem> instance, {
+    Insertable<DailyQuestItemEntity> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -818,9 +823,9 @@ class $DailyQuestItemsTable extends DailyQuestItems
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  DailyQuestItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+  DailyQuestItemEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return DailyQuestItem(
+    return DailyQuestItemEntity(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -842,11 +847,12 @@ class $DailyQuestItemsTable extends DailyQuestItems
   }
 }
 
-class DailyQuestItem extends DataClass implements Insertable<DailyQuestItem> {
+class DailyQuestItemEntity extends DataClass
+    implements Insertable<DailyQuestItemEntity> {
   final String id;
   final String gameId;
   final String name;
-  const DailyQuestItem({
+  const DailyQuestItemEntity({
     required this.id,
     required this.gameId,
     required this.name,
@@ -868,12 +874,12 @@ class DailyQuestItem extends DataClass implements Insertable<DailyQuestItem> {
     );
   }
 
-  factory DailyQuestItem.fromJson(
+  factory DailyQuestItemEntity.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return DailyQuestItem(
+    return DailyQuestItemEntity(
       id: serializer.fromJson<String>(json['id']),
       gameId: serializer.fromJson<String>(json['gameId']),
       name: serializer.fromJson<String>(json['name']),
@@ -889,14 +895,14 @@ class DailyQuestItem extends DataClass implements Insertable<DailyQuestItem> {
     };
   }
 
-  DailyQuestItem copyWith({String? id, String? gameId, String? name}) =>
-      DailyQuestItem(
+  DailyQuestItemEntity copyWith({String? id, String? gameId, String? name}) =>
+      DailyQuestItemEntity(
         id: id ?? this.id,
         gameId: gameId ?? this.gameId,
         name: name ?? this.name,
       );
-  DailyQuestItem copyWithCompanion(DailyQuestItemsCompanion data) {
-    return DailyQuestItem(
+  DailyQuestItemEntity copyWithCompanion(DailyQuestItemsCompanion data) {
+    return DailyQuestItemEntity(
       id: data.id.present ? data.id.value : this.id,
       gameId: data.gameId.present ? data.gameId.value : this.gameId,
       name: data.name.present ? data.name.value : this.name,
@@ -905,7 +911,7 @@ class DailyQuestItem extends DataClass implements Insertable<DailyQuestItem> {
 
   @override
   String toString() {
-    return (StringBuffer('DailyQuestItem(')
+    return (StringBuffer('DailyQuestItemEntity(')
           ..write('id: $id, ')
           ..write('gameId: $gameId, ')
           ..write('name: $name')
@@ -918,13 +924,13 @@ class DailyQuestItem extends DataClass implements Insertable<DailyQuestItem> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is DailyQuestItem &&
+      (other is DailyQuestItemEntity &&
           other.id == this.id &&
           other.gameId == this.gameId &&
           other.name == this.name);
 }
 
-class DailyQuestItemsCompanion extends UpdateCompanion<DailyQuestItem> {
+class DailyQuestItemsCompanion extends UpdateCompanion<DailyQuestItemEntity> {
   final Value<String> id;
   final Value<String> gameId;
   final Value<String> name;
@@ -943,7 +949,7 @@ class DailyQuestItemsCompanion extends UpdateCompanion<DailyQuestItem> {
   }) : id = Value(id),
        gameId = Value(gameId),
        name = Value(name);
-  static Insertable<DailyQuestItem> custom({
+  static Insertable<DailyQuestItemEntity> custom({
     Expression<String>? id,
     Expression<String>? gameId,
     Expression<String>? name,
@@ -1002,7 +1008,7 @@ class DailyQuestItemsCompanion extends UpdateCompanion<DailyQuestItem> {
 }
 
 class $CharacterQuestItemsTable extends CharacterQuestItems
-    with TableInfo<$CharacterQuestItemsTable, CharacterQuestItem> {
+    with TableInfo<$CharacterQuestItemsTable, CharacterQuestItemEntity> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -1099,7 +1105,7 @@ class $CharacterQuestItemsTable extends CharacterQuestItems
   static const String $name = 'character_quest_items';
   @override
   VerificationContext validateIntegrity(
-    Insertable<CharacterQuestItem> instance, {
+    Insertable<CharacterQuestItemEntity> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -1154,9 +1160,12 @@ class $CharacterQuestItemsTable extends CharacterQuestItems
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CharacterQuestItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+  CharacterQuestItemEntity map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CharacterQuestItem(
+    return CharacterQuestItemEntity(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -1199,8 +1208,8 @@ class $CharacterQuestItemsTable extends CharacterQuestItems
       const EnumIndexConverter<QuestCategory>(QuestCategory.values);
 }
 
-class CharacterQuestItem extends DataClass
-    implements Insertable<CharacterQuestItem> {
+class CharacterQuestItemEntity extends DataClass
+    implements Insertable<CharacterQuestItemEntity> {
   final String id;
   final String gameId;
   final String characterId;
@@ -1208,7 +1217,7 @@ class CharacterQuestItem extends DataClass
   final String name;
   final DateTime? dueDate;
   final String? memo;
-  const CharacterQuestItem({
+  const CharacterQuestItemEntity({
     required this.id,
     required this.gameId,
     required this.characterId,
@@ -1252,12 +1261,12 @@ class CharacterQuestItem extends DataClass
     );
   }
 
-  factory CharacterQuestItem.fromJson(
+  factory CharacterQuestItemEntity.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CharacterQuestItem(
+    return CharacterQuestItemEntity(
       id: serializer.fromJson<String>(json['id']),
       gameId: serializer.fromJson<String>(json['gameId']),
       characterId: serializer.fromJson<String>(json['characterId']),
@@ -1285,7 +1294,7 @@ class CharacterQuestItem extends DataClass
     };
   }
 
-  CharacterQuestItem copyWith({
+  CharacterQuestItemEntity copyWith({
     String? id,
     String? gameId,
     String? characterId,
@@ -1293,7 +1302,7 @@ class CharacterQuestItem extends DataClass
     String? name,
     Value<DateTime?> dueDate = const Value.absent(),
     Value<String?> memo = const Value.absent(),
-  }) => CharacterQuestItem(
+  }) => CharacterQuestItemEntity(
     id: id ?? this.id,
     gameId: gameId ?? this.gameId,
     characterId: characterId ?? this.characterId,
@@ -1302,8 +1311,10 @@ class CharacterQuestItem extends DataClass
     dueDate: dueDate.present ? dueDate.value : this.dueDate,
     memo: memo.present ? memo.value : this.memo,
   );
-  CharacterQuestItem copyWithCompanion(CharacterQuestItemsCompanion data) {
-    return CharacterQuestItem(
+  CharacterQuestItemEntity copyWithCompanion(
+    CharacterQuestItemsCompanion data,
+  ) {
+    return CharacterQuestItemEntity(
       id: data.id.present ? data.id.value : this.id,
       gameId: data.gameId.present ? data.gameId.value : this.gameId,
       characterId: data.characterId.present
@@ -1318,7 +1329,7 @@ class CharacterQuestItem extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('CharacterQuestItem(')
+    return (StringBuffer('CharacterQuestItemEntity(')
           ..write('id: $id, ')
           ..write('gameId: $gameId, ')
           ..write('characterId: $characterId, ')
@@ -1336,7 +1347,7 @@ class CharacterQuestItem extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CharacterQuestItem &&
+      (other is CharacterQuestItemEntity &&
           other.id == this.id &&
           other.gameId == this.gameId &&
           other.characterId == this.characterId &&
@@ -1346,7 +1357,8 @@ class CharacterQuestItem extends DataClass
           other.memo == this.memo);
 }
 
-class CharacterQuestItemsCompanion extends UpdateCompanion<CharacterQuestItem> {
+class CharacterQuestItemsCompanion
+    extends UpdateCompanion<CharacterQuestItemEntity> {
   final Value<String> id;
   final Value<String> gameId;
   final Value<String> characterId;
@@ -1379,7 +1391,7 @@ class CharacterQuestItemsCompanion extends UpdateCompanion<CharacterQuestItem> {
        characterId = Value(characterId),
        category = Value(category),
        name = Value(name);
-  static Insertable<CharacterQuestItem> custom({
+  static Insertable<CharacterQuestItemEntity> custom({
     Expression<String>? id,
     Expression<String>? gameId,
     Expression<String>? characterId,
@@ -1472,7 +1484,7 @@ class CharacterQuestItemsCompanion extends UpdateCompanion<CharacterQuestItem> {
 }
 
 class $QuestLogsTable extends QuestLogs
-    with TableInfo<$QuestLogsTable, QuestLog> {
+    with TableInfo<$QuestLogsTable, QuestLogEntity> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -1552,7 +1564,7 @@ class $QuestLogsTable extends QuestLogs
   static const String $name = 'quest_logs';
   @override
   VerificationContext validateIntegrity(
-    Insertable<QuestLog> instance, {
+    Insertable<QuestLogEntity> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -1605,9 +1617,9 @@ class $QuestLogsTable extends QuestLogs
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  QuestLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+  QuestLogEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return QuestLog(
+    return QuestLogEntity(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -1637,13 +1649,13 @@ class $QuestLogsTable extends QuestLogs
   }
 }
 
-class QuestLog extends DataClass implements Insertable<QuestLog> {
+class QuestLogEntity extends DataClass implements Insertable<QuestLogEntity> {
   final String id;
   final String questItemId;
   final String? characterId;
   final DateTime periodDate;
   final bool isCompleted;
-  const QuestLog({
+  const QuestLogEntity({
     required this.id,
     required this.questItemId,
     this.characterId,
@@ -1675,12 +1687,12 @@ class QuestLog extends DataClass implements Insertable<QuestLog> {
     );
   }
 
-  factory QuestLog.fromJson(
+  factory QuestLogEntity.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return QuestLog(
+    return QuestLogEntity(
       id: serializer.fromJson<String>(json['id']),
       questItemId: serializer.fromJson<String>(json['questItemId']),
       characterId: serializer.fromJson<String?>(json['characterId']),
@@ -1700,21 +1712,21 @@ class QuestLog extends DataClass implements Insertable<QuestLog> {
     };
   }
 
-  QuestLog copyWith({
+  QuestLogEntity copyWith({
     String? id,
     String? questItemId,
     Value<String?> characterId = const Value.absent(),
     DateTime? periodDate,
     bool? isCompleted,
-  }) => QuestLog(
+  }) => QuestLogEntity(
     id: id ?? this.id,
     questItemId: questItemId ?? this.questItemId,
     characterId: characterId.present ? characterId.value : this.characterId,
     periodDate: periodDate ?? this.periodDate,
     isCompleted: isCompleted ?? this.isCompleted,
   );
-  QuestLog copyWithCompanion(QuestLogsCompanion data) {
-    return QuestLog(
+  QuestLogEntity copyWithCompanion(QuestLogsCompanion data) {
+    return QuestLogEntity(
       id: data.id.present ? data.id.value : this.id,
       questItemId: data.questItemId.present
           ? data.questItemId.value
@@ -1733,7 +1745,7 @@ class QuestLog extends DataClass implements Insertable<QuestLog> {
 
   @override
   String toString() {
-    return (StringBuffer('QuestLog(')
+    return (StringBuffer('QuestLogEntity(')
           ..write('id: $id, ')
           ..write('questItemId: $questItemId, ')
           ..write('characterId: $characterId, ')
@@ -1749,7 +1761,7 @@ class QuestLog extends DataClass implements Insertable<QuestLog> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is QuestLog &&
+      (other is QuestLogEntity &&
           other.id == this.id &&
           other.questItemId == this.questItemId &&
           other.characterId == this.characterId &&
@@ -1757,7 +1769,7 @@ class QuestLog extends DataClass implements Insertable<QuestLog> {
           other.isCompleted == this.isCompleted);
 }
 
-class QuestLogsCompanion extends UpdateCompanion<QuestLog> {
+class QuestLogsCompanion extends UpdateCompanion<QuestLogEntity> {
   final Value<String> id;
   final Value<String> questItemId;
   final Value<String?> characterId;
@@ -1782,7 +1794,7 @@ class QuestLogsCompanion extends UpdateCompanion<QuestLog> {
   }) : id = Value(id),
        questItemId = Value(questItemId),
        periodDate = Value(periodDate);
-  static Insertable<QuestLog> custom({
+  static Insertable<QuestLogEntity> custom({
     Expression<String>? id,
     Expression<String>? questItemId,
     Expression<String>? characterId,
@@ -1857,7 +1869,7 @@ class QuestLogsCompanion extends UpdateCompanion<QuestLog> {
 }
 
 class $NotificationRulesTable extends NotificationRules
-    with TableInfo<$NotificationRulesTable, NotificationRule> {
+    with TableInfo<$NotificationRulesTable, NotificationRuleEntity> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -1932,7 +1944,7 @@ class $NotificationRulesTable extends NotificationRules
   static const String $name = 'notification_rules';
   @override
   VerificationContext validateIntegrity(
-    Insertable<NotificationRule> instance, {
+    Insertable<NotificationRuleEntity> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -1973,9 +1985,9 @@ class $NotificationRulesTable extends NotificationRules
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  NotificationRule map(Map<String, dynamic> data, {String? tablePrefix}) {
+  NotificationRuleEntity map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return NotificationRule(
+    return NotificationRuleEntity(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -2010,14 +2022,14 @@ class $NotificationRulesTable extends NotificationRules
       const StringListConverter();
 }
 
-class NotificationRule extends DataClass
-    implements Insertable<NotificationRule> {
+class NotificationRuleEntity extends DataClass
+    implements Insertable<NotificationRuleEntity> {
   final String id;
   final List<String> gameIds;
   final int notifyHour;
   final int notifyMinute;
   final bool isEnabled;
-  const NotificationRule({
+  const NotificationRuleEntity({
     required this.id,
     required this.gameIds,
     required this.notifyHour,
@@ -2049,12 +2061,12 @@ class NotificationRule extends DataClass
     );
   }
 
-  factory NotificationRule.fromJson(
+  factory NotificationRuleEntity.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return NotificationRule(
+    return NotificationRuleEntity(
       id: serializer.fromJson<String>(json['id']),
       gameIds: serializer.fromJson<List<String>>(json['gameIds']),
       notifyHour: serializer.fromJson<int>(json['notifyHour']),
@@ -2074,21 +2086,21 @@ class NotificationRule extends DataClass
     };
   }
 
-  NotificationRule copyWith({
+  NotificationRuleEntity copyWith({
     String? id,
     List<String>? gameIds,
     int? notifyHour,
     int? notifyMinute,
     bool? isEnabled,
-  }) => NotificationRule(
+  }) => NotificationRuleEntity(
     id: id ?? this.id,
     gameIds: gameIds ?? this.gameIds,
     notifyHour: notifyHour ?? this.notifyHour,
     notifyMinute: notifyMinute ?? this.notifyMinute,
     isEnabled: isEnabled ?? this.isEnabled,
   );
-  NotificationRule copyWithCompanion(NotificationRulesCompanion data) {
-    return NotificationRule(
+  NotificationRuleEntity copyWithCompanion(NotificationRulesCompanion data) {
+    return NotificationRuleEntity(
       id: data.id.present ? data.id.value : this.id,
       gameIds: data.gameIds.present ? data.gameIds.value : this.gameIds,
       notifyHour: data.notifyHour.present
@@ -2103,7 +2115,7 @@ class NotificationRule extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('NotificationRule(')
+    return (StringBuffer('NotificationRuleEntity(')
           ..write('id: $id, ')
           ..write('gameIds: $gameIds, ')
           ..write('notifyHour: $notifyHour, ')
@@ -2119,7 +2131,7 @@ class NotificationRule extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is NotificationRule &&
+      (other is NotificationRuleEntity &&
           other.id == this.id &&
           other.gameIds == this.gameIds &&
           other.notifyHour == this.notifyHour &&
@@ -2127,7 +2139,8 @@ class NotificationRule extends DataClass
           other.isEnabled == this.isEnabled);
 }
 
-class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
+class NotificationRulesCompanion
+    extends UpdateCompanion<NotificationRuleEntity> {
   final Value<String> id;
   final Value<List<String>> gameIds;
   final Value<int> notifyHour;
@@ -2153,7 +2166,7 @@ class NotificationRulesCompanion extends UpdateCompanion<NotificationRule> {
        gameIds = Value(gameIds),
        notifyHour = Value(notifyHour),
        notifyMinute = Value(notifyMinute);
-  static Insertable<NotificationRule> custom({
+  static Insertable<NotificationRuleEntity> custom({
     Expression<String>? id,
     Expression<String>? gameIds,
     Expression<int>? notifyHour,
@@ -2280,10 +2293,10 @@ typedef $$GamesTableUpdateCompanionBuilder =
     });
 
 final class $$GamesTableReferences
-    extends BaseReferences<_$AppDatabase, $GamesTable, Game> {
+    extends BaseReferences<_$AppDatabase, $GamesTable, GameEntity> {
   $$GamesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static MultiTypedResultKey<$CharactersTable, List<Character>>
+  static MultiTypedResultKey<$CharactersTable, List<CharacterEntity>>
   _charactersRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.characters,
     aliasName: 'games__id__characters__game_id',
@@ -2301,7 +2314,7 @@ final class $$GamesTableReferences
     );
   }
 
-  static MultiTypedResultKey<$DailyQuestItemsTable, List<DailyQuestItem>>
+  static MultiTypedResultKey<$DailyQuestItemsTable, List<DailyQuestItemEntity>>
   _dailyQuestItemsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.dailyQuestItems,
     aliasName: 'games__id__daily_quest_items__game_id',
@@ -2323,7 +2336,7 @@ final class $$GamesTableReferences
 
   static MultiTypedResultKey<
     $CharacterQuestItemsTable,
-    List<CharacterQuestItem>
+    List<CharacterQuestItemEntity>
   >
   _characterQuestItemsRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
@@ -2631,14 +2644,14 @@ class $$GamesTableTableManager
         RootTableManager<
           _$AppDatabase,
           $GamesTable,
-          Game,
+          GameEntity,
           $$GamesTableFilterComposer,
           $$GamesTableOrderingComposer,
           $$GamesTableAnnotationComposer,
           $$GamesTableCreateCompanionBuilder,
           $$GamesTableUpdateCompanionBuilder,
-          (Game, $$GamesTableReferences),
-          Game,
+          (GameEntity, $$GamesTableReferences),
+          GameEntity,
           PrefetchHooks Function({
             bool charactersRefs,
             bool dailyQuestItemsRefs,
@@ -2699,7 +2712,7 @@ class $$GamesTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$GamesTable, Game>(table),
+                  e.readTable<$GamesTable, GameEntity>(table),
                   $$GamesTableReferences(db, table, e),
                 ),
               )
@@ -2721,7 +2734,11 @@ class $$GamesTableTableManager
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (charactersRefs)
-                        await $_getPrefetchedData<Game, $GamesTable, Character>(
+                        await $_getPrefetchedData<
+                          GameEntity,
+                          $GamesTable,
+                          CharacterEntity
+                        >(
                           currentTable: table,
                           referencedTable: $$GamesTableReferences
                               ._charactersRefsTable(db),
@@ -2739,9 +2756,9 @@ class $$GamesTableTableManager
                         ),
                       if (dailyQuestItemsRefs)
                         await $_getPrefetchedData<
-                          Game,
+                          GameEntity,
                           $GamesTable,
-                          DailyQuestItem
+                          DailyQuestItemEntity
                         >(
                           currentTable: table,
                           referencedTable: $$GamesTableReferences
@@ -2760,9 +2777,9 @@ class $$GamesTableTableManager
                         ),
                       if (characterQuestItemsRefs)
                         await $_getPrefetchedData<
-                          Game,
+                          GameEntity,
                           $GamesTable,
-                          CharacterQuestItem
+                          CharacterQuestItemEntity
                         >(
                           currentTable: table,
                           referencedTable: $$GamesTableReferences
@@ -2791,14 +2808,14 @@ typedef $$GamesTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $GamesTable,
-      Game,
+      GameEntity,
       $$GamesTableFilterComposer,
       $$GamesTableOrderingComposer,
       $$GamesTableAnnotationComposer,
       $$GamesTableCreateCompanionBuilder,
       $$GamesTableUpdateCompanionBuilder,
-      (Game, $$GamesTableReferences),
-      Game,
+      (GameEntity, $$GamesTableReferences),
+      GameEntity,
       PrefetchHooks Function({
         bool charactersRefs,
         bool dailyQuestItemsRefs,
@@ -2821,7 +2838,7 @@ typedef $$CharactersTableUpdateCompanionBuilder =
     });
 
 final class $$CharactersTableReferences
-    extends BaseReferences<_$AppDatabase, $CharactersTable, Character> {
+    extends BaseReferences<_$AppDatabase, $CharactersTable, CharacterEntity> {
   $$CharactersTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $GamesTable _gameIdTable(_$AppDatabase db) =>
@@ -2843,7 +2860,7 @@ final class $$CharactersTableReferences
 
   static MultiTypedResultKey<
     $CharacterQuestItemsTable,
-    List<CharacterQuestItem>
+    List<CharacterQuestItemEntity>
   >
   _characterQuestItemsRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
@@ -2865,7 +2882,7 @@ final class $$CharactersTableReferences
     );
   }
 
-  static MultiTypedResultKey<$QuestLogsTable, List<QuestLog>>
+  static MultiTypedResultKey<$QuestLogsTable, List<QuestLogEntity>>
   _questLogsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.questLogs,
     aliasName: 'characters__id__quest_logs__character_id',
@@ -3115,14 +3132,14 @@ class $$CharactersTableTableManager
         RootTableManager<
           _$AppDatabase,
           $CharactersTable,
-          Character,
+          CharacterEntity,
           $$CharactersTableFilterComposer,
           $$CharactersTableOrderingComposer,
           $$CharactersTableAnnotationComposer,
           $$CharactersTableCreateCompanionBuilder,
           $$CharactersTableUpdateCompanionBuilder,
-          (Character, $$CharactersTableReferences),
-          Character,
+          (CharacterEntity, $$CharactersTableReferences),
+          CharacterEntity,
           PrefetchHooks Function({
             bool gameId,
             bool characterQuestItemsRefs,
@@ -3167,7 +3184,7 @@ class $$CharactersTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$CharactersTable, Character>(table),
+                  e.readTable<$CharactersTable, CharacterEntity>(table),
                   $$CharactersTableReferences(db, table, e),
                 ),
               )
@@ -3221,9 +3238,9 @@ class $$CharactersTableTableManager
                     return [
                       if (characterQuestItemsRefs)
                         await $_getPrefetchedData<
-                          Character,
+                          CharacterEntity,
                           $CharactersTable,
-                          CharacterQuestItem
+                          CharacterQuestItemEntity
                         >(
                           currentTable: table,
                           referencedTable: $$CharactersTableReferences
@@ -3242,9 +3259,9 @@ class $$CharactersTableTableManager
                         ),
                       if (questLogsRefs)
                         await $_getPrefetchedData<
-                          Character,
+                          CharacterEntity,
                           $CharactersTable,
-                          QuestLog
+                          QuestLogEntity
                         >(
                           currentTable: table,
                           referencedTable: $$CharactersTableReferences
@@ -3273,14 +3290,14 @@ typedef $$CharactersTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $CharactersTable,
-      Character,
+      CharacterEntity,
       $$CharactersTableFilterComposer,
       $$CharactersTableOrderingComposer,
       $$CharactersTableAnnotationComposer,
       $$CharactersTableCreateCompanionBuilder,
       $$CharactersTableUpdateCompanionBuilder,
-      (Character, $$CharactersTableReferences),
-      Character,
+      (CharacterEntity, $$CharactersTableReferences),
+      CharacterEntity,
       PrefetchHooks Function({
         bool gameId,
         bool characterQuestItemsRefs,
@@ -3304,7 +3321,11 @@ typedef $$DailyQuestItemsTableUpdateCompanionBuilder =
 
 final class $$DailyQuestItemsTableReferences
     extends
-        BaseReferences<_$AppDatabase, $DailyQuestItemsTable, DailyQuestItem> {
+        BaseReferences<
+          _$AppDatabase,
+          $DailyQuestItemsTable,
+          DailyQuestItemEntity
+        > {
   $$DailyQuestItemsTableReferences(
     super.$_db,
     super.$_table,
@@ -3459,14 +3480,14 @@ class $$DailyQuestItemsTableTableManager
         RootTableManager<
           _$AppDatabase,
           $DailyQuestItemsTable,
-          DailyQuestItem,
+          DailyQuestItemEntity,
           $$DailyQuestItemsTableFilterComposer,
           $$DailyQuestItemsTableOrderingComposer,
           $$DailyQuestItemsTableAnnotationComposer,
           $$DailyQuestItemsTableCreateCompanionBuilder,
           $$DailyQuestItemsTableUpdateCompanionBuilder,
-          (DailyQuestItem, $$DailyQuestItemsTableReferences),
-          DailyQuestItem,
+          (DailyQuestItemEntity, $$DailyQuestItemsTableReferences),
+          DailyQuestItemEntity,
           PrefetchHooks Function({bool gameId})
         > {
   $$DailyQuestItemsTableTableManager(
@@ -3509,7 +3530,9 @@ class $$DailyQuestItemsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$DailyQuestItemsTable, DailyQuestItem>(table),
+                  e.readTable<$DailyQuestItemsTable, DailyQuestItemEntity>(
+                    table,
+                  ),
                   $$DailyQuestItemsTableReferences(db, table, e),
                 ),
               )
@@ -3565,14 +3588,14 @@ typedef $$DailyQuestItemsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $DailyQuestItemsTable,
-      DailyQuestItem,
+      DailyQuestItemEntity,
       $$DailyQuestItemsTableFilterComposer,
       $$DailyQuestItemsTableOrderingComposer,
       $$DailyQuestItemsTableAnnotationComposer,
       $$DailyQuestItemsTableCreateCompanionBuilder,
       $$DailyQuestItemsTableUpdateCompanionBuilder,
-      (DailyQuestItem, $$DailyQuestItemsTableReferences),
-      DailyQuestItem,
+      (DailyQuestItemEntity, $$DailyQuestItemsTableReferences),
+      DailyQuestItemEntity,
       PrefetchHooks Function({bool gameId})
     >;
 typedef $$CharacterQuestItemsTableCreateCompanionBuilder =
@@ -3603,7 +3626,7 @@ final class $$CharacterQuestItemsTableReferences
         BaseReferences<
           _$AppDatabase,
           $CharacterQuestItemsTable,
-          CharacterQuestItem
+          CharacterQuestItemEntity
         > {
   $$CharacterQuestItemsTableReferences(
     super.$_db,
@@ -3885,14 +3908,14 @@ class $$CharacterQuestItemsTableTableManager
         RootTableManager<
           _$AppDatabase,
           $CharacterQuestItemsTable,
-          CharacterQuestItem,
+          CharacterQuestItemEntity,
           $$CharacterQuestItemsTableFilterComposer,
           $$CharacterQuestItemsTableOrderingComposer,
           $$CharacterQuestItemsTableAnnotationComposer,
           $$CharacterQuestItemsTableCreateCompanionBuilder,
           $$CharacterQuestItemsTableUpdateCompanionBuilder,
-          (CharacterQuestItem, $$CharacterQuestItemsTableReferences),
-          CharacterQuestItem,
+          (CharacterQuestItemEntity, $$CharacterQuestItemsTableReferences),
+          CharacterQuestItemEntity,
           PrefetchHooks Function({bool gameId, bool characterId})
         > {
   $$CharacterQuestItemsTableTableManager(
@@ -3957,9 +3980,10 @@ class $$CharacterQuestItemsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$CharacterQuestItemsTable, CharacterQuestItem>(
-                    table,
-                  ),
+                  e.readTable<
+                    $CharacterQuestItemsTable,
+                    CharacterQuestItemEntity
+                  >(table),
                   $$CharacterQuestItemsTableReferences(db, table, e),
                 ),
               )
@@ -4030,14 +4054,14 @@ typedef $$CharacterQuestItemsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $CharacterQuestItemsTable,
-      CharacterQuestItem,
+      CharacterQuestItemEntity,
       $$CharacterQuestItemsTableFilterComposer,
       $$CharacterQuestItemsTableOrderingComposer,
       $$CharacterQuestItemsTableAnnotationComposer,
       $$CharacterQuestItemsTableCreateCompanionBuilder,
       $$CharacterQuestItemsTableUpdateCompanionBuilder,
-      (CharacterQuestItem, $$CharacterQuestItemsTableReferences),
-      CharacterQuestItem,
+      (CharacterQuestItemEntity, $$CharacterQuestItemsTableReferences),
+      CharacterQuestItemEntity,
       PrefetchHooks Function({bool gameId, bool characterId})
     >;
 typedef $$QuestLogsTableCreateCompanionBuilder =
@@ -4060,7 +4084,7 @@ typedef $$QuestLogsTableUpdateCompanionBuilder =
     });
 
 final class $$QuestLogsTableReferences
-    extends BaseReferences<_$AppDatabase, $QuestLogsTable, QuestLog> {
+    extends BaseReferences<_$AppDatabase, $QuestLogsTable, QuestLogEntity> {
   $$QuestLogsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $CharactersTable _characterIdTable(_$AppDatabase db) =>
@@ -4243,14 +4267,14 @@ class $$QuestLogsTableTableManager
         RootTableManager<
           _$AppDatabase,
           $QuestLogsTable,
-          QuestLog,
+          QuestLogEntity,
           $$QuestLogsTableFilterComposer,
           $$QuestLogsTableOrderingComposer,
           $$QuestLogsTableAnnotationComposer,
           $$QuestLogsTableCreateCompanionBuilder,
           $$QuestLogsTableUpdateCompanionBuilder,
-          (QuestLog, $$QuestLogsTableReferences),
-          QuestLog,
+          (QuestLogEntity, $$QuestLogsTableReferences),
+          QuestLogEntity,
           PrefetchHooks Function({bool characterId})
         > {
   $$QuestLogsTableTableManager(_$AppDatabase db, $QuestLogsTable table)
@@ -4299,7 +4323,7 @@ class $$QuestLogsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$QuestLogsTable, QuestLog>(table),
+                  e.readTable<$QuestLogsTable, QuestLogEntity>(table),
                   $$QuestLogsTableReferences(db, table, e),
                 ),
               )
@@ -4353,14 +4377,14 @@ typedef $$QuestLogsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $QuestLogsTable,
-      QuestLog,
+      QuestLogEntity,
       $$QuestLogsTableFilterComposer,
       $$QuestLogsTableOrderingComposer,
       $$QuestLogsTableAnnotationComposer,
       $$QuestLogsTableCreateCompanionBuilder,
       $$QuestLogsTableUpdateCompanionBuilder,
-      (QuestLog, $$QuestLogsTableReferences),
-      QuestLog,
+      (QuestLogEntity, $$QuestLogsTableReferences),
+      QuestLogEntity,
       PrefetchHooks Function({bool characterId})
     >;
 typedef $$NotificationRulesTableCreateCompanionBuilder =
@@ -4487,21 +4511,21 @@ class $$NotificationRulesTableTableManager
         RootTableManager<
           _$AppDatabase,
           $NotificationRulesTable,
-          NotificationRule,
+          NotificationRuleEntity,
           $$NotificationRulesTableFilterComposer,
           $$NotificationRulesTableOrderingComposer,
           $$NotificationRulesTableAnnotationComposer,
           $$NotificationRulesTableCreateCompanionBuilder,
           $$NotificationRulesTableUpdateCompanionBuilder,
           (
-            NotificationRule,
+            NotificationRuleEntity,
             BaseReferences<
               _$AppDatabase,
               $NotificationRulesTable,
-              NotificationRule
+              NotificationRuleEntity
             >,
           ),
-          NotificationRule,
+          NotificationRuleEntity,
           PrefetchHooks Function()
         > {
   $$NotificationRulesTableTableManager(
@@ -4555,11 +4579,13 @@ class $$NotificationRulesTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$NotificationRulesTable, NotificationRule>(table),
+                  e.readTable<$NotificationRulesTable, NotificationRuleEntity>(
+                    table,
+                  ),
                   BaseReferences<
                     _$AppDatabase,
                     $NotificationRulesTable,
-                    NotificationRule
+                    NotificationRuleEntity
                   >(db, table, e),
                 ),
               )
@@ -4573,21 +4599,21 @@ typedef $$NotificationRulesTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
       $NotificationRulesTable,
-      NotificationRule,
+      NotificationRuleEntity,
       $$NotificationRulesTableFilterComposer,
       $$NotificationRulesTableOrderingComposer,
       $$NotificationRulesTableAnnotationComposer,
       $$NotificationRulesTableCreateCompanionBuilder,
       $$NotificationRulesTableUpdateCompanionBuilder,
       (
-        NotificationRule,
+        NotificationRuleEntity,
         BaseReferences<
           _$AppDatabase,
           $NotificationRulesTable,
-          NotificationRule
+          NotificationRuleEntity
         >,
       ),
-      NotificationRule,
+      NotificationRuleEntity,
       PrefetchHooks Function()
     >;
 

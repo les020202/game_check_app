@@ -1,0 +1,54 @@
+[
+  {
+    "gameName": "로스트아크",
+    "gameType": "rpg",
+    "gameResetHour": 6,
+    "gameResetMinute": 0,
+    "weeklyResetWeekday": "wednesday",
+    "dailyItems": [
+      { "name": "카오스던전" },
+      { "name": "가디언토벌" }
+    ],
+    "characterTemplate": {
+      "weeklyItems": [],
+      "monthlyItems": [],
+      "goalItems": []
+    }
+  },
+  {
+    "gameName": "메이플스토리",
+    "gameType": "rpg", 
+    "gameResetHour": 0,
+    "gameResetMinute": 0,
+    "weeklyResetWeekday": "thursday",
+    "dailyItems": [
+      { "name": "그란디스 일일 퀘스트" },
+      { "name": "몬스터 파크" }
+    ],
+    "characterTemplate": {
+      "weeklyItems": [],
+      "monthlyItems": [],
+      "goalItems": []
+    }
+  },
+  {
+    "gameName": "명조",
+    "gameType": "mobile", 
+    "gameResetHour": 5,
+    "gameResetMinute": 0,
+    "weeklyResetWeekday": "monday",
+    "dailyItems": [
+      { "name": "활약도 채우기" },
+      { "name": "플레이트 사용" }
+    ],
+    "characterTemplate": {
+      "weeklyItems": [
+        { "category": "weekly", "name": "주간 보스 1" },
+        { "category": "weekly", "name": "주간 보스 2" },
+        { "category": "weekly", "name": "주간 보스 3" }
+      ],
+      "monthlyItems": [],
+      "goalItems": []
+    }
+  }
+]

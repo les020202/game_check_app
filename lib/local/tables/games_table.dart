@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../../models/game_type.dart';
 import '../../models/weekday.dart';
 
+@DataClassName('GameEntity')
 class Games extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();

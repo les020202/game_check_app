@@ -1,26 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../models/game_type.dart';
+import '../viewmodel/provider/game_template_provider.dart';
 import '../widgets/custom_button.dart';
 
-class OnboardingGameTypePage extends StatefulWidget {
+class OnboardingGameTypePage extends StatelessWidget {
   const OnboardingGameTypePage({super.key});
 
-  @override
-  State<OnboardingGameTypePage> createState() => _OnboardingGameTypePageState();
-}
-
-class _OnboardingGameTypePageState extends State<OnboardingGameTypePage> {
-  final List<List<String>> gameTypeList = [
+  static const List<List<String>> _labels = [
     ['RPG', '여러 캐릭터로 육성하는 게임'],
     ['모바일 게임', '계정 하나로 플레이하는 게임'],
-  ]; //임시
-
-  final List<bool> isCheckeds = [false, false]; //임시
-
+  ];
+  static const List<GameType> _values = [GameType.rpg, GameType.mobile];
+  
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final onboardingProvider = context.watch<GameTemplateProvider>();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -33,7 +32,7 @@ class _OnboardingGameTypePageState extends State<OnboardingGameTypePage> {
             style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400),
           ),
         ],
-        actionsPadding: EdgeInsets.only(right: 20),
+        actionsPadding: const EdgeInsets.only(right: 20),
       ),
       body: SafeArea(
         child: Padding(
@@ -43,20 +42,17 @@ class _OnboardingGameTypePageState extends State<OnboardingGameTypePage> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Flexible(
-                        child: ClipRRect(
-                          child: LinearProgressIndicator(
-                            value: 1 / 3,
-                            backgroundColor: Colors.grey,
-                            color: Colors.blue,
-                          ),
+                      const ClipRRect(
+                        child: LinearProgressIndicator(
+                          value: 1 / 3,
+                          backgroundColor: Colors.grey,
+                          color: Colors.blue,
                         ),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Text(
                         '어떤 타입의 게임을\n즐겨 하시나요?',
                         style: textTheme.titleLarge?.copyWith(
@@ -69,13 +65,14 @@ class _OnboardingGameTypePageState extends State<OnboardingGameTypePage> {
                           fontWeight: FontWeight.w400,
                         ),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       ListView.builder(
                         shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: gameTypeList.length,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _labels.length,
                         itemBuilder: (context, index) {
-                          final gameType = gameTypeList[index];
+                          final type = _values[index];
+                          final label = _labels[index];
                           return Padding(
                             padding: const EdgeInsets.all(5.0),
                             child: Container(
@@ -86,20 +83,22 @@ class _OnboardingGameTypePageState extends State<OnboardingGameTypePage> {
                                 border: Border.all(color: Colors.grey),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
-                                        '${gameType[0]}',
+                                        label[0],
                                         style: textTheme.bodyLarge?.copyWith(
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
                                       Text(
-                                        '${gameType[1]}',
+                                        label[1],
                                         style: textTheme.bodyMedium?.copyWith(
                                           fontWeight: FontWeight.w400,
                                         ),
@@ -107,11 +106,13 @@ class _OnboardingGameTypePageState extends State<OnboardingGameTypePage> {
                                     ],
                                   ),
                                   Checkbox(
-                                    value: isCheckeds[index],
-                                    onChanged: (isChecked) {
-                                      setState(() {
-                                        isCheckeds[index] = isChecked!;
-                                      });
+                                    value: onboardingProvider.isTypeSelected(
+                                      type,
+                                    ),
+                                    onChanged: (_) {
+                                      context
+                                          .read<GameTemplateProvider>()
+                                          .toggleGameType(type);
                                     },
                                     shape: const CircleBorder(),
                                   ),
@@ -132,11 +133,29 @@ class _OnboardingGameTypePageState extends State<OnboardingGameTypePage> {
                   color: colorScheme.onPrimary,
                   fontWeight: FontWeight.w400,
                 ),
-                onPressed: () {
-                  context.go('/onboarding_game_select_page');
+                onPressed: () async {
+                  final provider = context.read<GameTemplateProvider>();
+                  if (provider.selectedGameTypes.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('게임 타입을 선택해주세요')),
+                    );
+                    return;
+                  }
+                  try {
+                    await provider.loadFilteredTemplates();
+                    if (context.mounted)
+                      context.go('/onboarding_game_select_page');
+                  } catch (e, st) {
+                    debugPrint('온보딩 1→2 이동 실패: $e\n$st');
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('에러: $e')));
+                    }
+                  }
                 },
               ),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
             ],
           ),
         ),

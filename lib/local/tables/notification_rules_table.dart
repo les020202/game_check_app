@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../converters/string_list_converter.dart';
 
+@DataClassName('NotificationRuleEntity')
 class NotificationRules extends Table {
   TextColumn get id => text()();
   TextColumn get gameIds => text().map(const StringListConverter())();
