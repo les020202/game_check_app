@@ -17,21 +17,29 @@ class GameMainPage extends StatefulWidget {
 
 class _GameMainPageState extends State<GameMainPage> {
   bool _isLoading = true;
+  GameProvider? _lastGp;
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAll());
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final gp = Provider.of<GameProvider>(context);   // 인스턴스 교체를 감지
+    if (identical(_lastGp, gp)) return;              // 같은 인스턴스면 무시
+    _lastGp = gp;
+    _isLoading = true;                               // setState 없이 대입 (곧 build가 이어짐)
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAll(gp));
   }
 
-  Future<void> _loadAll() async {
-    final gp = Provider.of<GameProvider>(context, listen: false);
+  Future<void> _loadAll(GameProvider gp) async {
+    bool stale() => !mounted || !identical(_lastGp, gp);
 
     await gp.loadGames();
+    if (stale()) return;
 
     for (final game in gp.games) {
       await gp.loadCharacters(game.id);
+      if (stale()) return;
       await gp.loadDailyQuests(game.id);
+      if (stale()) return;
 
       final characters = gp.characters(game.id);
       final dailyQuests = gp.dailyQuests(game.id);
@@ -40,6 +48,7 @@ class _GameMainPageState extends State<GameMainPage> {
       for (final daily in dailyQuests) {
         for (final character in characters) {
           await gp.loadQuestLog(daily.id, characterId: character.id, periodDate: todayPeriod,);
+          if (stale()) return;
         }
       }
     }

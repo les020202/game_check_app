@@ -17,19 +17,32 @@ import 'tables/notification_rules_table.dart';
 
 part 'database.g.dart';
 
-@DriftDatabase(tables: [
-  Games,
-  Characters,
-  DailyQuestItems,
-  CharacterQuestItems,
-  QuestLogs,
-  NotificationRules,
-])
+@DriftDatabase(
+  tables: [
+    Games,
+    Characters,
+    DailyQuestItems,
+    CharacterQuestItems,
+    QuestLogs,
+    NotificationRules,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.drop(questLogs);
+        await m.createTable(questLogs);
+      }
+    },
+  );
 
   Future<void> resetAllTables() async {
     await transaction(() async {

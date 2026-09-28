@@ -1,43 +1,99 @@
-
 import 'package:flutter/material.dart';
-import 'services/firebase_auth_service.dart';
-import 'show_snackbar.dart';
 
-Future<String?> showReauthenticationDialog(BuildContext context, FirebaseAuthService auth ){
-  final TextEditingController passwordController = TextEditingController();
-
-  return showDialog<String>(
+/// 탈퇴 성공 시 true, 취소 시 false/null
+Future<bool?> showReauthenticationDialog(
+  BuildContext context,
+  Future<void> Function(String password) onConfirm,
+) {
+  return showDialog<bool>(
     context: context,
-    builder: (context){
-      return AlertDialog(
-        title: Text('비밀번호 확인'),
-        content: TextField(
-          controller: passwordController,
-          obscureText: true,
-          decoration: InputDecoration(labelText: '비밀번호를 입력하세요'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: (){
-              Navigator.pop(context,null);
-            },
-            child: Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () async{
-              if(!context.mounted) return;
-              try{
-                await auth.reauthenticateAndDeleteAccount(passwordController.text);
-                showSnackBar(context, '탈퇴처리가 완료되었습니다.');
-              }catch(e){
-                showSnackBar(context, '$e');
-              }
-              Navigator.pop(context);
-            },
-            child: Text('탈퇴하기'),
-          ),
-        ],
-      );
-    }
+    barrierDismissible: false,
+    builder: (_) => _ReauthenticationDialog(onConfirm: onConfirm),
   );
+}
+
+class _ReauthenticationDialog extends StatefulWidget {
+  final Future<void> Function(String password) onConfirm;
+  const _ReauthenticationDialog({required this.onConfirm});
+
+  @override
+  State<_ReauthenticationDialog> createState() =>
+      _ReauthenticationDialogState();
+}
+
+class _ReauthenticationDialogState extends State<_ReauthenticationDialog> {
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final password = _passwordController.text;
+    if (password.isEmpty) {
+      setState(() => _errorMessage = '비밀번호를 입력하세요.');
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      await widget.onConfirm(password);
+      if (mounted) Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('비밀번호 확인'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _passwordController,
+            obscureText: true,
+            enabled: !_isLoading,
+            decoration: const InputDecoration(labelText: '비밀번호를 입력하세요'),
+            onSubmitted: (_) => _submit(),
+          ),
+          if (_errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                _errorMessage!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.pop(context, false),
+          child: const Text('취소'),
+        ),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _submit,
+          child: _isLoading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('탈퇴하기'),
+        ),
+      ],
+    );
+  }
 }

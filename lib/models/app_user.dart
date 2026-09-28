@@ -1,15 +1,17 @@
-class User {
-  final String id; // Firebase Auth uid
+class AppUser {
+  final String id; 
   final String nickname;
   final String email;
   final String? profileImageUrl;
+  final bool emailVerified;
   final DateTime createdAt;
 
-  User({
+  AppUser({
     required this.id,
     required this.nickname,
     required this.email,
     this.profileImageUrl,
+    this.emailVerified = false,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 }

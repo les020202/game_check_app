@@ -1,8 +1,10 @@
 //filename:login_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../services/firebase_auth_service.dart';
+import 'package:provider/provider.dart';
+
 import '../show_snackbar.dart';
+import '../viewmodel/provider/firebase_auth_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '/widgets/custom_button.dart';
 
@@ -14,10 +16,9 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _formKey=GlobalKey<FormState>();
-  final _auth = FirebaseAuthService();
+  final _formKey = GlobalKey<FormState>();
 
-  bool isChecked=false;
+  bool isChecked = false;
   String? email;
   String? password;
 
@@ -25,9 +26,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      appBar: CustomAppBar(title: '로그인',),
+      appBar: CustomAppBar(title: '로그인'),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -44,15 +44,21 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text('로그인',style: textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),),
-                    SizedBox(height: 12,),
+                    Text(
+                      '로그인',
+                      style: textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 12),
                     TextFormField(
                       style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelText: 'Email',
-                        labelStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.w500,),
+                        labelStyle: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
                         filled: true,
                         fillColor: Colors.grey.shade200,
                         hintText: 'example@example.com',
@@ -63,16 +69,16 @@ class _LoginPageState extends State<LoginPage> {
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      validator:(value) {
-                        if(value==null || value.isEmpty){
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
                           return '이메일을 입력하세요';
                         }
-                        if(!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)){
+                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                           return '올바른 이메일 형식을 입력하세요';
                         }
                         return null;
                       },
-                      onSaved: (value){
+                      onSaved: (value) {
                         email = value;
                       },
                     ),
@@ -81,10 +87,16 @@ class _LoginPageState extends State<LoginPage> {
                       style: TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        labelStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.w500,),
+                        labelStyle: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
                         filled: true,
                         fillColor: Colors.grey.shade200,
-                        prefixIcon: Icon(Icons.lock_outline, color: Colors.black),
+                        prefixIcon: Icon(
+                          Icons.lock_outline,
+                          color: Colors.black,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide.none,
@@ -92,56 +104,60 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       obscureText: true,
                       validator: (value) {
-                        if(value==null || value.isEmpty){
+                        if (value == null || value.isEmpty) {
                           return '비밀번호를 입력하세요';
                         }
-                        if(value.length<6){
+                        if (value.length < 6) {
                           return '비밀번호는 최소 6자 이상이어야 합니다';
                         }
                         return null;
                       },
-                      onSaved: (value){
-                        password=value;
+                      onSaved: (value) {
+                        password = value;
                       },
                     ),
                     Row(
                       children: [
                         Checkbox(
-                          value: isChecked, 
+                          value: isChecked,
                           onChanged: (value) {
                             setState(() {
-                              isChecked=!isChecked;
+                              isChecked = !isChecked;
                             });
                           },
                         ),
-                        Text('자동 로그인',style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w400,
-                        ),),
+                        Text(
+                          '자동 로그인',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
                         Spacer(),
                         TextButton(
                           onPressed: () {
-                            context.go('my_page/login_page/reset_password_page');
+                            context.go(
+                              'my_page/login_page/reset_password_page',
+                            );
                           },
                           child: Text('비밀번호를 잊으셨나요?'),
-                        )
+                        ),
                       ],
                     ),
                     CustomButton(
                       customText: '로그인',
-                      onPressed: () {
-                        if(_formKey.currentState?.validate()??false){
-                          _formKey.currentState?.save();
-                          _auth.signInWithEmail(
-                            email: email!,
-                            password: password!,
-                          )
-                          .then((_){
-                            showSnackBar(context, '로그인이 되었습니다.');
-                            context.go('/game_main_page');
-                          })
-                          .catchError((error){
-                            showSnackBar(context, '$error');
-                          });
+                      onPressed: () async {
+                        if (!(_formKey.currentState?.validate() ?? false)) return;
+                        _formKey.currentState?.save();
+                        try {
+                          await context.read<FirebaseAuthProvider>().signIn(
+                            email!,
+                            password!,
+                          );
+                          if (!mounted) return;
+                          showSnackBar(context, '로그인이 되었습니다.');
+                          context.go('/game_main_page');
+                        } catch (error) {
+                          if (mounted) showSnackBar(context, '$error');
                         }
                       },
                       backgroundColors: colorScheme.primary,
@@ -155,19 +171,30 @@ class _LoginPageState extends State<LoginPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          Expanded(child: Container(height: 1,color: colorScheme.outlineVariant,)),
-                          Text('  또는  ',style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w400,
-                          ),),
-                          Expanded(child: Container(height: 1,color: colorScheme.outlineVariant,)),
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: colorScheme.outlineVariant,
+                            ),
+                          ),
+                          Text(
+                            '  또는  ',
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: colorScheme.outlineVariant,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     CustomButton(
                       customText: 'Google로 계속하기',
-                      onPressed: () {
-                        
-                      },
+                      onPressed: () {},
                       backgroundColors: colorScheme.onPrimary,
                       fontStyle: textTheme.bodyMedium!.copyWith(
                         color: colorScheme.primary,
@@ -175,7 +202,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       borderSide: BorderSide(color: colorScheme.primary),
                     ),
-                    SizedBox(height: 24,),
+                    SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -185,10 +212,10 @@ class _LoginPageState extends State<LoginPage> {
                             context.go('/my_page/login_page/registration_page');
                           },
                           child: Text('회원가입'),
-                        )
+                        ),
                       ],
                     ),
-                    SizedBox(height: 24,),
+                    SizedBox(height: 24),
                   ],
                 ),
               ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'package:drift/drift.dart';
 
-import '../../local/database.dart';
-import '../../services/drift_game_service.dart';
+import '../../models/app_user.dart';
+import '../../services/firestore_game_service.dart';
+import '../../services/game_service.dart';
 import '../../models/character.dart';
 import '../../models/character_quest_item.dart';
 import '../../models/daily_quest_item.dart';
@@ -12,81 +12,46 @@ import '../../models/quest_category.dart';
 import '../../models/quest_log.dart';
 
 class GameProvider extends ChangeNotifier {
-  final DriftGameService _service;
+  final GameService _service;
+
   final Uuid _uuid = const Uuid();
 
   GameProvider(this._service);
 
+  GameService get service => _service;
+
+  //User? _user;
   List<Game> _games = [];
   List<Character> _characters = [];
   List<DailyQuestItem> _dailyQuests = [];
   List<CharacterQuestItem> _characterQuests = [];
   List<QuestLog> _questLogs = [];
 
-  List<Game> get games => List.unmodifiable(_games);
+  bool _disposed = false;
 
-  // =========================================================
-  // 매핑 함수 (Entity <-> Model)
-  // =========================================================
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 
-  Game _toGame(GameEntity e) => Game(
-    id: e.id,
-    userId: null, // 로컬 DB엔 없음 — 나중에 Firebase 연동 시 처리
-    name: e.name,
-    gameType: e.gameType,
-    gameResetHour: e.gameResetHour,
-    gameResetMinute: e.gameResetMinute,
-    weeklyResetWeekday: e.weeklyResetWeekday,
-    createdAt: e.createdAt,
-  );
-
-  GamesCompanion _gameToCompanion(Game g) => GamesCompanion(
-    id: Value(g.id),
-    name: Value(g.name),
-    gameType: Value(g.gameType),
-    gameResetHour: Value(g.gameResetHour),
-    gameResetMinute: Value(g.gameResetMinute),
-    weeklyResetWeekday: Value(g.weeklyResetWeekday),
-    createdAt: Value(g.createdAt),
-  );
-
-  Character _toCharacter(CharacterEntity e) =>
-      Character(id: e.id, gameId: e.gameId, name: e.name);
-
-  DailyQuestItem _toDaily(DailyQuestItemEntity e) =>
-      DailyQuestItem(id: e.id, gameId: e.gameId, name: e.name);
-
-  CharacterQuestItem _toCharacterQuest(CharacterQuestItemEntity e) =>
-      CharacterQuestItem(
-        id: e.id,
-        gameId: e.gameId,
-        characterId: e.characterId,
-        category: e.category,
-        name: e.name,
-        memo: e.memo,
-        dueDate: e.dueDate,
-      );
-
-  QuestLog _toQuestLog(QuestLogEntity e) => QuestLog(
-    id: e.id,
-    questItemId: e.questItemId,
-    characterId: e.characterId,
-    periodDate: e.periodDate,
-    isCompleted: e.isCompleted,
-  );
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
 
   // =========================================================
   // Game
   // =========================================================
+  List<Game> get games => List.unmodifiable(_games);
 
   Future<void> loadGames() async {
-    final entities = await _service.getGames();
-    _games = entities.map(_toGame).toList();
+    _games = await _service.getGames();
     notifyListeners();
   }
 
   Future<void> addGame(Game game) async {
-    await _service.addGame(_gameToCompanion(game));
+    await _service.addGame(game);
     await loadGames();
   }
 
@@ -96,7 +61,7 @@ class GameProvider extends ChangeNotifier {
   }
 
   Future<void> updateGame(String gameId, Game newGame) async {
-    await _service.updateGame(gameId, _gameToCompanion(newGame));
+    await _service.updateGame(gameId, newGame);
     await loadGames();
   }
 
@@ -109,22 +74,13 @@ class GameProvider extends ChangeNotifier {
   }
 
   Future<void> loadCharacters(String gameId) async {
-    final entities = await _service.getCharacters(gameId);
-    _characters = [
-      ..._characters.where((c) => c.gameId != gameId), // 다른 게임 데이터는 유지
-      ...entities.map(_toCharacter),
-    ];
+    final list = await _service.getCharacters(gameId);
+    _characters = [..._characters.where((c) => c.gameId != gameId), ...list];
     notifyListeners();
   }
 
   Future<void> addCharacter(Character character) async {
-    await _service.addCharacter(
-      CharactersCompanion(
-        id: Value(character.id),
-        gameId: Value(character.gameId),
-        name: Value(character.name),
-      ),
-    );
+    await _service.addCharacter(character);
     await loadCharacters(character.gameId);
   }
 
@@ -150,22 +106,13 @@ class GameProvider extends ChangeNotifier {
   }
 
   Future<void> loadDailyQuests(String gameId) async {
-    final entities = await _service.getDailyQuests(gameId);
-    _dailyQuests = [
-      ..._dailyQuests.where((d) => d.gameId != gameId),
-      ...entities.map(_toDaily),
-    ];
+    final list = await _service.getDailyQuests(gameId);
+    _dailyQuests = [..._dailyQuests.where((d) => d.gameId != gameId), ...list];
     notifyListeners();
   }
 
   Future<void> addDaily(DailyQuestItem dailyQuest) async {
-    await _service.addDailyQuest(
-      DailyQuestItemsCompanion(
-        id: Value(dailyQuest.id),
-        gameId: Value(dailyQuest.gameId),
-        name: Value(dailyQuest.name),
-      ),
-    );
+    await _service.addDailyQuest(dailyQuest);
     await loadDailyQuests(dailyQuest.gameId);
   }
 
@@ -235,26 +182,16 @@ class GameProvider extends ChangeNotifier {
   }
 
   Future<void> loadCharacterQuests(String gameId) async {
-    final entities = await _service.characterQuests(gameId);
+    final list = await _service.getCharacterQuests(gameId);
     _characterQuests = [
       ..._characterQuests.where((q) => q.gameId != gameId),
-      ...entities.map(_toCharacterQuest),
+      ...list,
     ];
     notifyListeners();
   }
 
   Future<void> addCharacterQuest(CharacterQuestItem characterQuest) async {
-    await _service.addCharacterQuest(
-      CharacterQuestItemsCompanion(
-        id: Value(characterQuest.id),
-        gameId: Value(characterQuest.gameId),
-        characterId: Value(characterQuest.characterId),
-        category: Value(characterQuest.category),
-        name: Value(characterQuest.name),
-        memo: Value(characterQuest.memo),
-        dueDate: Value(characterQuest.dueDate),
-      ),
-    );
+    await _service.addCharacterQuest(characterQuest);
     await loadCharacterQuests(characterQuest.gameId);
   }
 
@@ -308,19 +245,19 @@ class GameProvider extends ChangeNotifier {
     String? characterId,
     required DateTime periodDate,
   }) async {
-    final entity = await _service.getQuestLog(
+    final log = await _service.getQuestLog(
       questItemId,
       characterId: characterId,
       periodDate: periodDate,
     );
-    if (entity != null) {
+    if (log != null) {
       _questLogs.removeWhere(
         (q) =>
             q.questItemId == questItemId &&
             q.characterId == characterId &&
             _isSameDay(q.periodDate, periodDate),
       );
-      _questLogs.add(_toQuestLog(entity));
+      _questLogs.add(log);
       notifyListeners();
     }
   }
@@ -338,12 +275,12 @@ class GameProvider extends ChangeNotifier {
     );
 
     await _service.upsertQuestLog(
-      QuestLogsCompanion(
-        id: Value(existing?.id ?? _uuid.v4()),
-        questItemId: Value(questItemId),
-        characterId: Value(characterId),
-        periodDate: Value(existing?.periodDate ?? periodDate),
-        isCompleted: Value(isCompleted),
+      QuestLog(
+        id: existing?.id ?? _uuid.v4(),
+        questItemId: questItemId,
+        characterId: characterId,
+        periodDate: existing?.periodDate ?? periodDate,
+        isCompleted: isCompleted,
       ),
     );
 

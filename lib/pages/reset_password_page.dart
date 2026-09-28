@@ -1,8 +1,9 @@
 //filename:reset_password_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
-import '../services/firebase_auth_service.dart';
+import '../viewmodel/provider/firebase_auth_provider.dart';
 import '../show_snackbar.dart';
 import '/widgets/custom_button.dart';
 import '../widgets/custom_app_bar.dart';
@@ -10,8 +11,7 @@ import '../widgets/custom_app_bar.dart';
 class ResetPasswordPage extends StatelessWidget {
   ResetPasswordPage({super.key});
   final _formKey = GlobalKey<FormState>();
-  final _auth = FirebaseAuthService();
-  
+
   String? email;
 
   @override
@@ -42,9 +42,9 @@ class ResetPasswordPage extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: Colors.blue.shade50,
                       ),
-                      child: Icon(Icons.lock_outline,size: 40,)
+                      child: Icon(Icons.lock_outline, size: 40),
                     ),
-                    SizedBox(height: 24,),
+                    SizedBox(height: 24),
                     Text(
                       '비밀번호를 잊으셨나요?',
                       style: textTheme.titleLarge?.copyWith(
@@ -93,16 +93,21 @@ class ResetPasswordPage extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color: colorScheme.onPrimary,
                       ),
-                      onPressed: () {
-                        if(_formKey.currentState!.validate()){
-                          _formKey.currentState?.save();
-                          _auth.resetPassword(email: email!).then((_){
-                            showSnackBar(context, '비밀번호 재설정 이메일이 전송되었습니다.');
-                          }).catchError((error){
-                            showSnackBar(context, '$error');
-                          });
-                          context.go('/my_page/login_page/reset_password_page/mail_check_page/$email');
-                        } 
+                      onPressed: () async {
+                        if (!_formKey.currentState!.validate()) return;
+                        _formKey.currentState!.save();
+                        try {
+                          await context
+                              .read<FirebaseAuthProvider>()
+                              .resetPassword(email!);
+                          if (!context.mounted) return;
+                          showSnackBar(context, '비밀번호 재설정 이메일이 전송되었습니다.');
+                          context.go(
+                            '/my_page/login_page/reset_password_page/mail_check_page/$email',
+                          );
+                        } catch (error) {
+                          if (context.mounted) showSnackBar(context, '$error');
+                        }
                       },
                     ),
                     SizedBox(height: 24),
@@ -117,7 +122,7 @@ class ResetPasswordPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(Icons.error_outline),
-                          SizedBox(width: 6,),
+                          SizedBox(width: 6),
                           Column(
                             children: [
                               Text(
@@ -130,10 +135,11 @@ class ResetPasswordPage extends StatelessWidget {
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,
-                                  tapTargetSize:MaterialTapTargetSize.shrinkWrap,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 onPressed: () {
-                                  context.go('');// 고객센터 이동부분
+                                  context.go(''); // 고객센터 이동부분
                                 },
                                 child: Text(
                                   '고객센터로 문의해주세요.',

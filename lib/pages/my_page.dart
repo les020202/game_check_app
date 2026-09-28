@@ -1,15 +1,13 @@
 //filename:profile_page.dart
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../services/firebase_auth_service.dart';
-import '../services/firebase_storage_service.dart';
 import '../show_snackbar.dart';
 import '../viewmodel/provider/firebase_auth_provider.dart';
 import '../reauthentication_dialog.dart';
+
 class MyPage extends StatefulWidget {
   const MyPage({super.key});
 
@@ -19,10 +17,8 @@ class MyPage extends StatefulWidget {
 
 class _MyPageState extends State<MyPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final FirebaseAuthService _auth = FirebaseAuthService();
   final ImagePicker _picker = ImagePicker();
-  final FirebaseStorageService _storage = FirebaseStorageService();
-  
+
   bool _isEditing = false;
   bool _isUploading = false;
 
@@ -32,11 +28,7 @@ class _MyPageState extends State<MyPage> {
     //   Text('알림 설정'),
     //   '/my_page/notification_settings_page',
     // ], 알림설정 부분(비활성화)
-    [
-      Icon(Icons.help_outline), 
-      Text('자주 묻는 질문'), 
-      '/my_page/faq_page'
-    ],
+    [Icon(Icons.help_outline), Text('자주 묻는 질문'), '/my_page/faq_page'],
     [
       Icon(Icons.headset_mic_outlined),
       Text('고객센터'),
@@ -50,29 +42,19 @@ class _MyPageState extends State<MyPage> {
   ];
 
   Future<void> _pickImage() async {
-    setState(() {
-      _isUploading = true;
-    });
+    setState(() => _isUploading = true);
     try {
-      XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        String? downloadURL;
-        downloadURL = await _storage.uploadProfileImage(
-          bytes: await pickedFile.readAsBytes(),
-          path: pickedFile.path,
-          uid: _auth.user?.uid,
+      final picked = await _picker.pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        await context.read<FirebaseAuthProvider>().updateProfileImage(
+          bytes: await picked.readAsBytes(),
+          path: picked.path,
         );
-        await _auth.updatePhotoUrl(downloadURL);
-        if (mounted) {
-          context.read<FirebaseAuthProvider>().refreshUser();
-        }
       }
     } catch (e) {
-      showSnackBar(context, '$e');
+      if (mounted) showSnackBar(context, '$e');
     }
-    setState(() {
-      _isUploading = false;
-    });
+    if (mounted) setState(() => _isUploading = false);
   }
 
   @override
@@ -88,12 +70,12 @@ class _MyPageState extends State<MyPage> {
         ),
       ),
       body: Consumer<FirebaseAuthProvider>(
-        builder: (context, firebaseAuthProvider, snapshot) {
-          final isLoggedIn = firebaseAuthProvider.isLoggedIn;
-          final currentUser = firebaseAuthProvider.user;
-          String? nickName = currentUser?.displayName;
-          String? email = currentUser?.email;
-          String? profileImageURL = currentUser?.photoURL;
+        builder: (context, authProvider, snapshot) {
+          final isLoggedIn = authProvider.isLoggedIn;
+          final user = authProvider.user;
+          String? nickName = user?.nickname;
+          String? email = user?.email;
+          String? profileImageURL = user?.profileImageUrl;
 
           return ScrollConfiguration(
             behavior: ScrollConfiguration.of(
@@ -138,11 +120,6 @@ class _MyPageState extends State<MyPage> {
                                               : const AssetImage(
                                                   'assets/me.png',
                                                 ),
-                                          onBackgroundImageError: (_, __) {
-                                            setState(() {
-                                              profileImageURL = null;
-                                            });
-                                          },
                                           backgroundColor: Colors.transparent,
                                           child: _isUploading
                                               ? CircularProgressIndicator()
@@ -174,15 +151,14 @@ class _MyPageState extends State<MyPage> {
                                               Icons.close,
                                               color: colorScheme.onPrimary,
                                             ),
-                                            onPressed: () async{
-                                              if(!context.mounted) return;
-                                              try{
-                                                await _auth.deletePhotoUrl();
-                                                await _storage.deleteProfileImage(_auth.user?.uid);
-                                              }catch(e){
-                                                showSnackBar(context, '$e');
+                                            onPressed: () async {
+                                              try {
+                                                await authProvider
+                                                    .deleteProfileImage();
+                                              } catch (e) {
+                                                if (context.mounted)
+                                                  showSnackBar(context, '$e');
                                               }
-                                              firebaseAuthProvider.refreshUser();
                                             },
                                           ),
                                         ),
@@ -249,14 +225,14 @@ class _MyPageState extends State<MyPage> {
                                     _isEditing = !_isEditing;
                                   });
                                   if (!_isEditing) {
-                                    if (_formKey.currentState?.validate() ?? false) {
-                                      if(!context.mounted) return;
+                                    if (_formKey.currentState?.validate() ??
+                                        false) {
+                                      if (!context.mounted) return;
                                       _formKey.currentState?.save();
-                                      _auth.updateName(nickName)
+                                      authProvider
+                                          .updateName(nickName)
                                           .then((_) {
                                             showSnackBar(context, '수정 되었습니다.');
-                                            firebaseAuthProvider.refreshUser();
-                                            
                                           })
                                           .catchError((error) {
                                             showSnackBar(context, '$error');
@@ -300,7 +276,7 @@ class _MyPageState extends State<MyPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             ...getMenuList(menu),
-                            if (isLoggedIn)
+                            if (isLoggedIn && !(user?.emailVerified ?? false))
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -311,16 +287,19 @@ class _MyPageState extends State<MyPage> {
                                     ),
                                   ),
                                   TextButton(
-                                    onPressed: () {
-                                      if(_auth.user?.emailVerified??false){
-                                        showSnackBar(context, '이미 인증된 사용자입니다.');
-                                        return;
-                                      }
-                                      try{
-                                        _auth.sendVerificationEmail();
-                                        showSnackBar(context, '인증 이메일이 다시 전송되었습니다.');
-                                      }catch(e){
-                                        showSnackBar(context, '$e');
+                                    onPressed: () async {
+                                      try {
+                                        await authProvider
+                                            .sendVerificationEmail();
+                                        if (context.mounted) {
+                                          showSnackBar(
+                                            context,
+                                            '인증 이메일이 다시 전송되었습니다.',
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted)
+                                          showSnackBar(context, '$e');
                                       }
                                     },
                                     child: Text(
@@ -341,7 +320,7 @@ class _MyPageState extends State<MyPage> {
                                 TextButton(
                                   onPressed: () {
                                     if (isLoggedIn) {
-                                      _auth
+                                      authProvider
                                           .signOut()
                                           .then((_) {
                                             showSnackBar(context, '로그아웃되었습니다.');
@@ -363,15 +342,14 @@ class _MyPageState extends State<MyPage> {
                                 SizedBox(width: 12, child: Text('|')),
                                 Icon(Icons.delete_outline),
                                 TextButton(
-                                  onPressed: () async{
-                                    if(!context.mounted || _auth.user==null) return;
-                                    try{
-                                      showReauthenticationDialog(context,_auth);
-                                      showSnackBar(context, '탈퇴처리가 완료되었습니다.');  
-                                    }on FirebaseAuthException catch (e){
-                                      showReauthenticationDialog(context,_auth);
-                                    }catch(e){
-                                      showSnackBar(context, '$e');
+                                  onPressed: () async {
+                                    final ok = await showReauthenticationDialog(
+                                      context,
+                                      (password) =>
+                                          authProvider.deleteAccount(password),
+                                    );
+                                    if (ok == true && context.mounted) {
+                                      showSnackBar(context, '탈퇴처리가 완료되었습니다.');
                                     }
                                   },
                                   child: Text(

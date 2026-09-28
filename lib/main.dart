@@ -9,55 +9,67 @@ import 'local/database.dart';
 import 'my_router.dart';
 import 'services/firebase_auth_service.dart';
 import 'services/drift_game_service.dart';
+import 'services/firebase_storage_service.dart';
+import 'services/firestore_game_service.dart';
+import 'services/game_service.dart';
 import 'services/game_template_service.dart';
 import 'viewmodel/app_preferences.dart';
 import 'viewmodel/provider/firebase_auth_provider.dart';
 import 'viewmodel/provider/game_provider.dart';
 import 'viewmodel/provider/game_template_provider.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ko_KR', null);
 
   final db = AppDatabase();
-  final gameService = DriftGameService(db);
 
-  final onboardingDone =
-      await AppPreferences.isOnboardingDone();
+  final onboardingDone = await AppPreferences.isOnboardingDone();
   final router = createRouter(onboardingDone);
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(
-    MyApp(
-      gameProvider: GameProvider(gameService),
-      router: router,
-    ),
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(MyApp(db: db, router: router));
 }
 
 class MyApp extends StatelessWidget {
-  final GameProvider gameProvider;
+  final AppDatabase db;
   final GoRouter router;
 
-  const MyApp({
-    super.key,
-    required this.gameProvider,
-    required this.router,
-  });
+  const MyApp({super.key, required this.db, required this.router});
+
+  String? _uidOf(GameService s) => s is FirestoreGameService ? s.uid : null;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: gameProvider),
+        ChangeNotifierProvider(
+          create: (_) => FirebaseAuthProvider(
+            FirebaseAuthService(),
+            storageService: FirebaseStorageService(),
+          ),
+        ),
         ChangeNotifierProvider(
           create: (_) => GameTemplateProvider(GameTemplateService()),
         ),
-        ChangeNotifierProvider(
-          create: (_) => FirebaseAuthProvider(FirebaseAuthService()),
+        ChangeNotifierProxyProvider<FirebaseAuthProvider, GameProvider>(
+          create: (context) {
+            final user = context.read<FirebaseAuthProvider>().user;
+            return GameProvider(
+              user == null
+                  ? DriftGameService(db)
+                  : FirestoreGameService(user.id),
+            );
+          },
+          update: (_, auth, previous) {
+            final uid = auth.user?.id;
+            if (previous != null && _uidOf(previous.service) == uid) {
+              return previous; // 같은 유저(또는 계속 비로그인)면 기존 인스턴스 유지
+            }
+            return GameProvider(
+              uid == null ? DriftGameService(db) : FirestoreGameService(uid),
+            );
+          },
         ),
       ],
       child: MaterialApp.router(

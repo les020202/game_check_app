@@ -195,9 +195,9 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                               '${weekDates.last.month}월 ${weekDates.last.day}일',
                               style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                             ),
-                            const Spacer(),
-                            IconButton(onPressed: () {}, icon: const Icon(Icons.arrow_back_ios_new)),
-                            IconButton(onPressed: () {}, icon: const Icon(Icons.arrow_forward_ios)),
+                            // const Spacer(),
+                            // IconButton(onPressed: () {}, icon: const Icon(Icons.arrow_back_ios_new)),
+                            // IconButton(onPressed: () {}, icon: const Icon(Icons.arrow_forward_ios)),
                           ],
                         ),
                         Text(

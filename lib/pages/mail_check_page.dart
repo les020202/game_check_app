@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../services/firebase_auth_service.dart';
+import 'package:provider/provider.dart';
+
+import '../viewmodel/provider/firebase_auth_provider.dart';
 import '../show_snackbar.dart';
 import '/widgets/custom_app_bar.dart';
 
 class MailCheckPage extends StatelessWidget {
-  MailCheckPage({super.key,required this.email});
-
-  final _auth = FirebaseAuthService();
+  MailCheckPage({super.key, required this.email});
 
   String? email;
   List<String> guides = [
@@ -14,7 +14,7 @@ class MailCheckPage extends StatelessWidget {
     '메일 속 \'비밀번호 재설정\'링크를 눌려주세요',
     '열린 페이지에서 새 비밀번호를 설정하세요',
   ];
-  
+
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -34,12 +34,12 @@ class MailCheckPage extends StatelessWidget {
                     height: 50,
                     width: 50,
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50, 
-                      shape: BoxShape.circle
+                      color: Colors.green.shade50,
+                      shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.check,color: Colors.green,)
+                    child: Icon(Icons.check, color: Colors.green),
                   ),
-                  SizedBox(height: 12,),
+                  SizedBox(height: 12),
                   Text(
                     '메일을 보냈어요',
                     style: textTheme.titleLarge?.copyWith(
@@ -47,7 +47,7 @@ class MailCheckPage extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'example@example.com 주소로\n재설정 링크를 발송했어요',
+                    '$email 주소로\n재설정 링크를 발송했어요',
                     style: textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w400,
                     ),
@@ -61,19 +61,19 @@ class MailCheckPage extends StatelessWidget {
                     padding: const EdgeInsets.all(10.0),
                     child: Column(
                       children: [
-                        ...getMailGuide(textTheme,colorScheme, guides),
+                        ...getMailGuide(textTheme, colorScheme, guides),
                         Divider(),
                         Text(
                           '* 링크는 보안을 위해 일정 시간 후에 만료돼요',
                           style: textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w400,
-                            color: Colors.grey.shade500
+                            color: Colors.grey.shade500,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 24,),
+                  SizedBox(height: 24),
                   Text(
                     '메일이 오지 않았나요?',
                     style: textTheme.bodyLarge?.copyWith(
@@ -81,12 +81,16 @@ class MailCheckPage extends StatelessWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: (){
-                      _auth.resetPassword(email: email!).then((_){
-                        showSnackBar(context, '비밀번호 재설정 이메일이 전송되었습니다.');
-                      }).catchError((error){
-                        showSnackBar(context, '$error');
-                      });
+                    onPressed: () async {
+                      try {
+                        await context
+                            .read<FirebaseAuthProvider>()
+                            .resetPassword(email!);
+                        if (context.mounted)
+                          showSnackBar(context, '비밀번호 재설정 이메일이 전송되었습니다.');
+                      } catch (error) {
+                        if (context.mounted) showSnackBar(context, '$error');
+                      }
                     },
                     child: Text(
                       '재발송 요청하기',
@@ -105,7 +109,11 @@ class MailCheckPage extends StatelessWidget {
     );
   }
 
-  List<Padding> getMailGuide(TextTheme textTheme,ColorScheme colorScheme, List<String> guides) {
+  List<Padding> getMailGuide(
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+    List<String> guides,
+  ) {
     List<Padding> guideList = [];
     for (int i = 0; i < guides.length; i++) {
       guideList.add(

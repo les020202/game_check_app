@@ -13,6 +13,8 @@ import '../models/game.dart';
 import '../models/game_type.dart';
 import '../models/quest_category.dart';
 import '../models/weekday.dart';
+import '../services/firebase_auth_service.dart';
+import '../viewmodel/provider/firebase_auth_provider.dart';
 import '../viewmodel/provider/game_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_button.dart';
@@ -28,6 +30,8 @@ class GameSetupPage extends StatefulWidget {
 
 class _GameSetupPageState extends State<GameSetupPage> {
   final _formKey = GlobalKey<FormState>();
+  final _auth = FirebaseAuthProvider(FirebaseAuthService());
+
   bool _isLoading = false;
   final weekList = ['월', '화', '수', '목', '금', '토', '일'];
 

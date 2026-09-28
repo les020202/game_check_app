@@ -16,6 +16,6 @@ class QuestLogs extends Table {
   // questItemId + characterId 조합이 유니크하도록 제약 추가
   @override
   List<String> get customConstraints => [
-    'UNIQUE(quest_item_id, character_id)',
+    'UNIQUE(quest_item_id, character_id, period_date)',
   ];
 }
