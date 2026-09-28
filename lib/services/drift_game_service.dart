@@ -2,9 +2,9 @@ import 'package:drift/drift.dart';
 
 import '../local/database.dart';
 
-class GameService {
+class DriftGameService {
   final AppDatabase _db;
-  GameService(this._db);
+  DriftGameService(this._db);
 
   Future<List<GameEntity>> getGames() {
     return _db.select(_db.games).get();

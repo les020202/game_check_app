@@ -2,13 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../services/firebase_auth_service.dart';
+import '../show_snackbar.dart';
 import '/widgets/custom_button.dart';
 import '../widgets/custom_app_bar.dart';
 
 class ResetPasswordPage extends StatelessWidget {
   ResetPasswordPage({super.key});
   final _formKey = GlobalKey<FormState>();
-
+  final _auth = FirebaseAuthService();
+  
   String? email;
 
   @override
@@ -91,7 +94,15 @@ class ResetPasswordPage extends StatelessWidget {
                         color: colorScheme.onPrimary,
                       ),
                       onPressed: () {
-                        context.go('/my_page/login_page/reset_password_page/mail_check_page');
+                        if(_formKey.currentState!.validate()){
+                          _formKey.currentState?.save();
+                          _auth.resetPassword(email: email!).then((_){
+                            showSnackBar(context, '비밀번호 재설정 이메일이 전송되었습니다.');
+                          }).catchError((error){
+                            showSnackBar(context, '$error');
+                          });
+                          context.go('/my_page/login_page/reset_password_page/mail_check_page/$email');
+                        } 
                       },
                     ),
                     SizedBox(height: 24),
@@ -106,6 +117,7 @@ class ResetPasswordPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(Icons.error_outline),
+                          SizedBox(width: 6,),
                           Column(
                             children: [
                               Text(

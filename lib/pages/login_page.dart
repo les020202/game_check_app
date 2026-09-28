@@ -1,6 +1,8 @@
 //filename:login_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../services/firebase_auth_service.dart';
+import '../show_snackbar.dart';
 import '../widgets/custom_app_bar.dart';
 import '/widgets/custom_button.dart';
 
@@ -12,9 +14,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool isChecked=false;
   final _formKey=GlobalKey<FormState>();
+  final _auth = FirebaseAuthService();
 
+  bool isChecked=false;
   String? email;
   String? password;
 
@@ -128,6 +131,17 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: () {
                         if(_formKey.currentState?.validate()??false){
                           _formKey.currentState?.save();
+                          _auth.signInWithEmail(
+                            email: email!,
+                            password: password!,
+                          )
+                          .then((_){
+                            showSnackBar(context, '로그인이 되었습니다.');
+                            context.go('/game_main_page');
+                          })
+                          .catchError((error){
+                            showSnackBar(context, '$error');
+                          });
                         }
                       },
                       backgroundColors: colorScheme.primary,

@@ -14,8 +14,9 @@ ID 생성 : uuid (v4)
 캘린더 : table_calendar
 기타 UI : dotted_border(점선 위젯)
 로컬 설정 : shared_preferences(온보딩 페이지)
+갤러리 기능 : image_picker
+사진 저장 : Firebase Storage
 이메일 발송 : EmailJS (이메일 API)
-
 알림설정 : (임시)
 
 

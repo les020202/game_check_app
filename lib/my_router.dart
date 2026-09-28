@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -79,8 +80,8 @@ GoRouter createRouter(bool onboardingDone) {
                       builder: (context, state) {
                         String? gamesIndexString =
                         state.pathParameters['games_index'];
-                      final gamesIndex = int.parse(gamesIndexString!);
-                      return GameDetailWeekPage(gamesIndex: gamesIndex);
+                        final gamesIndex = int.parse(gamesIndexString!);
+                        return GameDetailWeekPage(gamesIndex: gamesIndex);
                       }
                     ),
                   ],
@@ -116,11 +117,16 @@ GoRouter createRouter(bool onboardingDone) {
                     ),
                     GoRoute(
                       path: 'reset_password_page',
-                      builder: (context, state) => ResetPasswordPage(),
+                      builder: (context, state) {
+                        return ResetPasswordPage();
+                      },
                       routes: [
                         GoRoute(
-                          path: 'mail_check_page',
-                          builder: (context, state) => MailCheckPage(),
+                          path: 'mail_check_page/:email',
+                          builder: (context, state) {
+                            String? email = state.pathParameters['email'];
+                            return MailCheckPage(email: email,);
+                          },
                         ),
                       ],
                     ),
@@ -161,5 +167,17 @@ GoRouter createRouter(bool onboardingDone) {
       ],
     ),
   ],
+  redirect: (context, state) {
+    User? user = FirebaseAuth.instance.currentUser;
+    if((user==null) && (state.uri.path == '/my_page/customer_service_page' ||
+    state.uri.path == '/my_page/terms_settings_page' ||
+    state.uri.path == '/my_page/notification_settings_page')){
+      return '/my_page/login_page';
+    }
+
+    if(user !=null && (state.uri.path == '/my_page/login_page' || state.uri.path == '/my_page/login_page/registration_page')){
+      return '/my_page';
+    }
+  },
 );
 }

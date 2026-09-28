@@ -27,67 +27,70 @@ class _CustomerServicePageState extends State<CustomerServicePage> {
     return Scaffold(
       appBar: CustomAppBar(title: '고객센터'),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '빠른 도움말',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '빠른 도움말',
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                SizedBox(height: 12),
-                SizedBox(
-                  height: 40,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: customerTypeNames.length,
-                    itemBuilder: (context, index) {
-                      return TagFilter(
-                        onTap: () {
-                          setState(() {
-                            isCheckeds[index] = !isCheckeds[index];
-                            if (!isCheckeds.contains(true)) {
-                              isCheckeds[0] = true;
-                            } else if (isCheckeds[0] && index != 0) {
-                              isCheckeds[0] = false;
-                            } else if (isCheckeds[0]) {
-                              isCheckeds = [true, false, false, false, false,false];
-                            }
-                          });
-                        },
-                        isCheckeds: isCheckeds,
-                        typeNames: customerTypeNames,
-                        index: index,
-                      );
-                    },
+                  SizedBox(height: 12),
+                  SizedBox(
+                    height: 40,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: customerTypeNames.length,
+                      itemBuilder: (context, index) {
+                        return TagFilter(
+                          onTap: () {
+                            setState(() {
+                              isCheckeds[index] = !isCheckeds[index];
+                              if (!isCheckeds.contains(true)) {
+                                isCheckeds[0] = true;
+                              } else if (isCheckeds[0] && index != 0) {
+                                isCheckeds[0] = false;
+                              } else if (isCheckeds[0]) {
+                                isCheckeds = [true, false, false, false, false,false];
+                              }
+                            });
+                          },
+                          isCheckeds: isCheckeds,
+                          typeNames: customerTypeNames,
+                          index: index,
+                        );
+                      },
+                    ),
                   ),
-                ),
-                SizedBox(height: 24),
-                Text(
-                  '내 문의 내역',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
+                  SizedBox(height: 24),
+                  Text(
+                    '내 문의 내역',
+                    style: textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                SizedBox(height: 12),
-                ...getInquiry(textTheme),
-                CustomButton(
-                  customText: '새 문의 작성하기', 
-                  onPressed: (){
-                    context.go('/my_page/customer_service_page/inquiry_form_page');
-                  }, 
-                  backgroundColors: colorScheme.primary, 
-                  fontStyle: textTheme.bodyLarge!.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colorScheme.onPrimary,
-                  )
-                ),
-              ],
+                  SizedBox(height: 12),
+                  ...getInquiry(textTheme),
+                  CustomButton(
+                    customText: '새 문의 작성하기', 
+                    onPressed: (){
+                      context.go('/my_page/customer_service_page/inquiry_form_page');
+                    }, 
+                    backgroundColors: colorScheme.primary, 
+                    fontStyle: textTheme.bodyLarge!.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onPrimary,
+                    )
+                  ),
+                ],
+              ),
             ),
           ),
         ),

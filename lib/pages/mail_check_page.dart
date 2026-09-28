@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import '../services/firebase_auth_service.dart';
+import '../show_snackbar.dart';
 import '/widgets/custom_app_bar.dart';
 
 class MailCheckPage extends StatelessWidget {
-  MailCheckPage({super.key});
+  MailCheckPage({super.key,required this.email});
 
+  final _auth = FirebaseAuthService();
+
+  String? email;
   List<String> guides = [
     '메일함에서 받은 메일을 열어주세요',
     '메일 속 \'비밀번호 재설정\'링크를 눌려주세요',
     '열린 페이지에서 새 비밀번호를 설정하세요',
   ];
+  
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -76,7 +82,11 @@ class MailCheckPage extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: (){
-                      //재발송 로직
+                      _auth.resetPassword(email: email!).then((_){
+                        showSnackBar(context, '비밀번호 재설정 이메일이 전송되었습니다.');
+                      }).catchError((error){
+                        showSnackBar(context, '$error');
+                      });
                     },
                     child: Text(
                       '재발송 요청하기',

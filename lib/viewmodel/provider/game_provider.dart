@@ -3,7 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart';
 
 import '../../local/database.dart';
-import '../../services/game_service.dart';
+import '../../services/drift_game_service.dart';
 import '../../models/character.dart';
 import '../../models/character_quest_item.dart';
 import '../../models/daily_quest_item.dart';
@@ -12,7 +12,7 @@ import '../../models/quest_category.dart';
 import '../../models/quest_log.dart';
 
 class GameProvider extends ChangeNotifier {
-  final GameService _service;
+  final DriftGameService _service;
   final Uuid _uuid = const Uuid();
 
   GameProvider(this._service);

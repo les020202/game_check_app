@@ -59,15 +59,15 @@ class _GameMainPageState extends State<GameMainPage> {
           '내 게임',
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              context.go('/my_page/notification_settings_page');
-            },
-            icon: Icon(Icons.notifications_outlined, size: 30),
-          ),
-        ],
-        actionsPadding: EdgeInsets.only(right: 20),
+        // actions: [ //알림설정 이동 부분(비활성화)
+        //   IconButton(
+        //     onPressed: () {
+        //       context.go('/my_page/notification_settings_page');
+        //     },
+        //     icon: Icon(Icons.notifications_outlined, size: 30),
+        //   ),
+        // ],
+        // actionsPadding: EdgeInsets.only(right: 20),
       ),
       body: SafeArea(
         child: Column(

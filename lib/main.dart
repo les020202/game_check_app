@@ -3,21 +3,25 @@ import 'package:game_check_app/firebase_options.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+
 import 'local/database.dart';
 import 'my_router.dart';
-import 'services/game_service.dart';
+import 'services/firebase_auth_service.dart';
+import 'services/drift_game_service.dart';
 import 'services/game_template_service.dart';
 import 'viewmodel/app_preferences.dart';
+import 'viewmodel/provider/firebase_auth_provider.dart';
 import 'viewmodel/provider/game_provider.dart';
 import 'viewmodel/provider/game_template_provider.dart';
-import 'package:firebase_core/firebase_core.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ko_KR', null);
 
   final db = AppDatabase();
-  final gameService = GameService(db);
+  final gameService = DriftGameService(db);
 
   final onboardingDone =
       await AppPreferences.isOnboardingDone();
@@ -51,6 +55,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: gameProvider),
         ChangeNotifierProvider(
           create: (_) => GameTemplateProvider(GameTemplateService()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FirebaseAuthProvider(FirebaseAuthService()),
         ),
       ],
       child: MaterialApp.router(

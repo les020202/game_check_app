@@ -50,134 +50,137 @@ class _FaqPageState extends State<FaqPage> {
     return Scaffold(
       appBar: CustomAppBar(title: '자주 묻는 질문'),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: '궁금한 내용을 검색해보세요.',
-                    filled: true,
-                    fillColor: colorScheme.onPrimary,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+        child: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(overscroll: false), 
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                children: [
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: '궁금한 내용을 검색해보세요.',
+                      filled: true,
+                      fillColor: colorScheme.onPrimary,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.search),
+                        onPressed: () {
+                          //검색한 내용이 관련된 것이 뜨게하는 로직
+                        },
+                      ),
                     ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(Icons.search),
-                      onPressed: () {
-                        //검색한 내용이 관련된 것이 뜨게하는 로직
+                  ),
+                  SizedBox(height: 12),
+                  SizedBox(
+                    height: 40,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: faqTypeNames.length,
+                      itemBuilder: (context, index) {
+                        return TagFilter(
+                          onTap: () {
+                            setState(() {
+                              isCheckeds[index] = !isCheckeds[index];
+                              if (!isCheckeds.contains(true)) {
+                                isCheckeds[0] = true;
+                              } else if (isCheckeds[0] && index != 0) {
+                                isCheckeds[0] = false;
+                              } else if (isCheckeds[0]) {
+                                isCheckeds = [true, false, false, false, false];
+                              }
+                            });
+                          },
+                          isCheckeds: isCheckeds,
+                          typeNames: faqTypeNames,
+                          index: index,
+                        );
                       },
                     ),
                   ),
-                ),
-                SizedBox(height: 12),
-                SizedBox(
-                  height: 40,
-                  child: ListView.builder(
+                  SizedBox(height: 12),
+                  ListView.builder(
                     shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: faqTypeNames.length,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: faqs.length,
                     itemBuilder: (context, index) {
-                      return TagFilter(
-                        onTap: () {
-                          setState(() {
-                            isCheckeds[index] = !isCheckeds[index];
-                            if (!isCheckeds.contains(true)) {
-                              isCheckeds[0] = true;
-                            } else if (isCheckeds[0] && index != 0) {
-                              isCheckeds[0] = false;
-                            } else if (isCheckeds[0]) {
-                              isCheckeds = [true, false, false, false, false];
-                            }
-                          });
-                        },
-                        isCheckeds: isCheckeds,
-                        typeNames: faqTypeNames,
-                        index: index,
+                      List<String> faq = faqs[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.onPrimary,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+                          child: ExpansionTile(
+                            tilePadding: EdgeInsets.zero,
+                            shape: const Border(),
+                            onExpansionChanged: (value) {
+                              setState(() {
+                                isExpandeds[index] = !isExpandeds[index];
+                              });
+                            },
+                            leading: Text(
+                              '${faq[0]}',
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            title: Text(
+                              '${faq[1]}',
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            trailing: AnimatedRotation(
+                              turns: isExpandeds[index] ? 0.75 : 0.25,
+                              duration: const Duration(milliseconds: 20),
+                              child: Icon(Icons.arrow_forward_ios),
+                            ),
+                            children: [
+                              Divider(),
+                              Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: Text('${faq[2]}',
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w400,
+                                    ),  
+                                    textAlign: TextAlign.left,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       );
                     },
                   ),
-                ),
-                SizedBox(height: 12),
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemCount: faqs.length,
-                  itemBuilder: (context, index) {
-                    List<String> faq = faqs[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colorScheme.onPrimary,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.only(left: 10.0, right: 10.0),
-                        child: ExpansionTile(
-                          tilePadding: EdgeInsets.zero,
-                          shape: const Border(),
-                          onExpansionChanged: (value) {
-                            setState(() {
-                              isExpandeds[index] = !isExpandeds[index];
-                            });
-                          },
-                          leading: Text(
-                            '${faq[0]}',
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                          title: Text(
-                            '${faq[1]}',
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          trailing: AnimatedRotation(
-                            turns: isExpandeds[index] ? 0.75 : 0.25,
-                            duration: const Duration(milliseconds: 20),
-                            child: Icon(Icons.arrow_forward_ios),
-                          ),
-                          children: [
-                            Divider(),
-                            Padding(
-                              padding: const EdgeInsets.all(5.0),
-                              child: SizedBox(
-                                width: double.infinity,
-                                child: Text('${faq[2]}',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w400,
-                                  ),  
-                                  textAlign: TextAlign.left,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                Text('원하는 답변을 찾지 못하셨나요?'),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  Text('원하는 답변을 찾지 못하셨나요?'),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () {
+                      context.go('/my_page/customer_service_page');
+                    },
+                    child: Text('고객센터에 문의하기(로그인 후 이용 가능)'),
                   ),
-                  onPressed: () {
-                    context.go('/my_page/customer_service_page');
-                  },
-                  child: Text('고객센터에 문의하기(로그인 후 이용 가능)'),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
