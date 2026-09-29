@@ -118,13 +118,9 @@ class _GameMainPageState extends State<GameMainPage> {
                     ],
                   ),
                   Text(
-                    '● RPG(멀티 캐릭터형) : 완료 캐릭터 수 / 전체 캐릭터 수 \n    (예: 3/4 완료)',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  Text(
-                    '● 모바일 게임(단일 계정형) : 완료 / 미완료',
+                    '● 퀘스트 완료 표시 기준\n완료(파랑) : 모든 퀘스트 완료\n'
+                    '부분 완료(주황) : 완료 캐릭터 수 / 전체 캐릭터 수 완료\n'
+                    '미완료(빨강) : 모든 퀘스트 미완료',
                     style: textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w400,
                     ),

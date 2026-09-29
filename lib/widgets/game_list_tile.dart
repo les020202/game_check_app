@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../game_delete_dialog.dart';
 import '../models/character.dart';
 import '../models/daily_quest_item.dart';
 import '../models/day_quest_status.dart';
 import '../models/game.dart';
+import '../show_snackbar.dart';
 import '../viewmodel/provider/game_provider.dart';
 import '../widgets/questProgressBadge.dart';
 import '../quest_period.dart';
+
 class GameListTile extends StatelessWidget {
   GameListTile({super.key});
 
@@ -19,37 +22,45 @@ class GameListTile extends StatelessWidget {
     Colors.blue.shade100,
     Colors.yellow.shade100,
   ];
-  int count = 0;  
+  int count = 0;
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     return Consumer<GameProvider>(
       builder: (context, gameProvider, child) {
-        List<Game> games = gameProvider.games;     
+        List<Game> games = gameProvider.games;
         return ListView.builder(
           shrinkWrap: true,
           physics: ClampingScrollPhysics(),
           itemCount: games.length,
-          itemBuilder: (context, index) {       
+          itemBuilder: (context, index) {
             count = index % colors.length;
-            Map<String,DayQuestStatus> questStatus={};            
+            Map<String, DayQuestStatus> questStatus = {};
             Game game = gameProvider.games[index];
             List<Character> characters = gameProvider.characters(game.id);
-            List<DailyQuestItem> dailyQuests = gameProvider.dailyQuests(game.id);
+            List<DailyQuestItem> dailyQuests = gameProvider.dailyQuests(
+              game.id,
+            );
             final todayPeriod = todayPeriodFor(game);
 
-            for(var character in characters){
-              int dailyCount=0;
-              int allCount=dailyQuests.length;
+            for (var character in characters) {
+              int dailyCount = 0;
+              int allCount = dailyQuests.length;
               for (var item in dailyQuests) {
-                final log = gameProvider.questLogs(item.id, characterId: character.id, periodDate: todayPeriod,);
-                if (log?.isCompleted == true) dailyCount++; 
+                final log = gameProvider.questLogs(
+                  item.id,
+                  characterId: character.id,
+                  periodDate: todayPeriod,
+                );
+                if (log?.isCompleted == true) dailyCount++;
               }
-              if(dailyQuests.isEmpty){}
-              else if(dailyCount==allCount) questStatus[character.id]=DayQuestStatus.complete;
-              else questStatus[character.id]=DayQuestStatus.incomplete;  
-            }   
+              if (dailyQuests.isEmpty) {
+              } else if (dailyCount == allCount)
+                questStatus[character.id] = DayQuestStatus.complete;
+              else
+                questStatus[character.id] = DayQuestStatus.incomplete;
+            }
             return Padding(
               padding: const EdgeInsets.all(10.0),
               child: ListTile(
@@ -83,10 +94,7 @@ class GameListTile extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    Text(
-                      '${game.gameType.name}',
-                      style: textTheme.bodyMedium,
-                    ),
+                    Text('${game.gameType.name}', style: textTheme.bodyMedium),
                   ],
                 ),
                 trailing: Row(
@@ -105,10 +113,16 @@ class GameListTile extends StatelessWidget {
                       icon: Icon(Icons.arrow_forward_ios),
                     ),
                     IconButton(
-                      onPressed: () {
-                        Provider.of<GameProvider>(context,listen: false).deleteGame(games[index].id);
+                      onPressed: () async {
+                        final confirmed = await showGameDeleteDialog(
+                          context,
+                          game.id,
+                        );
+                        if (confirmed == true && context.mounted) {
+                          showSnackBar(context, '삭제되었습니다.');
+                        }
                       },
-                      icon: Icon(Icons.delete,color: Colors.red,),
+                      icon: Icon(Icons.delete, color: Colors.red),
                     ),
                   ],
                 ), //trailing: ,

@@ -208,7 +208,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
     }
     return Scaffold(
       appBar: CustomAppBar(
-        title: '메이플스토리',
+        title: '게임 상세',
         actions: [
           IconButton(
             onPressed: () {
@@ -219,9 +219,15 @@ class _GameDetailPageState extends State<GameDetailPage> {
             icon: Icon(Icons.settings_outlined),
           ),
         ],
-      ), //임시 이름
+      ),
       body: Consumer<GameProvider>(
         builder: (context, gameProvider, child) {
+          if (gameProvider.games.length <= widget.gamesIndex) { // 게임 목록이 아직 로드되지 않았거나, 로그인 전환으로 인덱스가 어긋난 상태
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) context.go('/game_main_page');
+            });
+            return const Center(child: CircularProgressIndicator());
+          }
           Game game = gameProvider.games[widget.gamesIndex];
           List<DailyQuestItem> dailyQuests = gameProvider.dailyQuests(game.id);
           List<Character> characters = gameProvider.characters(game.id);

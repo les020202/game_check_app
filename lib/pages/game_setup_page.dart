@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../game_template_picker.dart';
 import '../models/character.dart';
 import '../models/character_quest_item.dart';
 import '../models/daily_quest_item.dart';
 import '../models/editable_quest_item.dart';
 import '../models/game.dart';
+import '../models/game_template.dart';
 import '../models/game_type.dart';
 import '../models/quest_category.dart';
 import '../models/weekday.dart';
@@ -33,6 +35,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
   final _auth = FirebaseAuthProvider(FirebaseAuthService());
 
   bool _isLoading = false;
+  int _templateGeneration = 0;
   final weekList = ['월', '화', '수', '목', '금', '토', '일'];
 
   int weekSelectedIndex = 1;
@@ -97,7 +100,9 @@ class _GameSetupPageState extends State<GameSetupPage> {
     await gp.loadCharacterQuests(game.id);
 
     newGameName = game.name;
-    isTypeChecked = game.gameType == GameType.rpg ? [true, false] : [false, true];
+    isTypeChecked = game.gameType == GameType.rpg
+        ? [true, false]
+        : [false, true];
     newGameResetHour = game.gameResetHour;
     newGameResetMinute = game.gameResetMinute;
     weekSelectedIndex = game.weeklyResetWeekday.value;
@@ -119,24 +124,32 @@ class _GameSetupPageState extends State<GameSetupPage> {
       newCharacterName.add(c.name);
 
       weeklyQuestsByCharacter[c.id] = allCharacterQuests
-          .where((q) => q.category == QuestCategory.weekly && q.characterId == c.id)
+          .where(
+            (q) => q.category == QuestCategory.weekly && q.characterId == c.id,
+          )
           .map((q) => EditableQuestItem(id: q.id, name: q.name))
           .toList();
 
       monthlyQuestsByCharacter[c.id] = allCharacterQuests
-          .where((q) => q.category == QuestCategory.monthly && q.characterId == c.id)
+          .where(
+            (q) => q.category == QuestCategory.monthly && q.characterId == c.id,
+          )
           .map((q) => EditableQuestItem(id: q.id, name: q.name))
           .toList();
 
       goalQuestsByCharacter[c.id] = allCharacterQuests
-          .where((q) => q.category == QuestCategory.goal && q.characterId == c.id)
-          .map((q) => EditableQuestItem(
-                id: q.id,
-                name: q.name,
-                memo: q.memo,
-                dueMonth: q.dueDate?.month,
-                dueDay: q.dueDate?.day,
-              ))
+          .where(
+            (q) => q.category == QuestCategory.goal && q.characterId == c.id,
+          )
+          .map(
+            (q) => EditableQuestItem(
+              id: q.id,
+              name: q.name,
+              memo: q.memo,
+              dueMonth: q.dueDate?.month,
+              dueDay: q.dueDate?.day,
+            ),
+          )
           .toList();
     }
 
@@ -153,6 +166,59 @@ class _GameSetupPageState extends State<GameSetupPage> {
     }
 
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  void _applyTemplate(GameTemplate template) {
+    //템플릿 폼 상태 채우기
+    setState(() {
+      _templateGeneration++;
+      newGameName = template.gameName;
+      isTypeChecked = template.gameType == GameType.rpg
+          ? [true, false]
+          : [false, true];
+      newGameResetHour = template.gameResetHour;
+      newGameResetMinute = template.gameResetMinute;
+      weekSelectedIndex = template.weeklyResetWeekday.value;
+
+      isDailyChecked = template.dailyItems.isEmpty;
+      dailyQuests = template.dailyItems
+          .map((d) => EditableQuestItem(name: d.name))
+          .toList();
+
+      final newId = uuid.v4();
+      newCharacterIds = [newId];
+      newCharacterName = [template.gameType == GameType.rpg ? '캐릭터' : '계정'];
+
+      weeklyQuestsByCharacter = {
+        newId: template.characterTemplate.weeklyItems
+            .map((q) => EditableQuestItem(name: q.name))
+            .toList(),
+      };
+      monthlyQuestsByCharacter = {
+        newId: template.characterTemplate.monthlyItems
+            .map((q) => EditableQuestItem(name: q.name))
+            .toList(),
+      };
+      goalQuestsByCharacter = {
+        newId: template.characterTemplate.goalItems.map((q) {
+          final due = q.dueDateOffsetDays != null
+              ? DateTime.now().add(Duration(days: q.dueDateOffsetDays!))
+              : DateTime.now();
+          return EditableQuestItem(
+            name: q.name,
+            memo: q.memo,
+            dueMonth: due.month,
+            dueDay: due.day,
+          );
+        }).toList(),
+      };
+      selectedCharacterId = newId;
+
+      isChracterChecked =
+          template.characterTemplate.weeklyItems.isEmpty &&
+          template.characterTemplate.monthlyItems.isEmpty &&
+          template.characterTemplate.goalItems.isEmpty;
+    });
   }
 
   @override
@@ -185,6 +251,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                     Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: TextFormField(
+                        key: ValueKey('game_name_$_templateGeneration'),
                         initialValue: newGameName,
                         onChanged: (String newName) {
                           newGameName = newName;
@@ -295,6 +362,41 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           ),
                         ),
                       ],
+                    ),
+                    SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.center,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: colorScheme.onPrimary,
+                        ),
+                        child: TextButton.icon(
+                          onPressed: () async {
+                            final currentType = isTypeChecked[0]
+                                ? GameType.rpg
+                                : GameType.mobile;
+                            final template = await showGameTemplatePicker(
+                              context,
+                              currentType,
+                              textTheme,
+                              colorScheme
+                            );
+                            if (template != null) _applyTemplate(template);
+                          },
+                          icon: Icon(
+                            Icons.list_alt,
+                            size: 18,
+                            color: colorScheme.primary,
+                          ),
+                          label: Text(
+                            '템플릿 보기',
+                            style: textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                     SizedBox(height: 12),
                     Text(
@@ -491,7 +593,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         fontWeight: FontWeight.w700,
                         color: colorScheme.onPrimary,
                       ),
-                      onPressed: () async{
+                      onPressed: () async {
                         final gp = Provider.of<GameProvider>(
                           context,
                           listen: false,
@@ -575,7 +677,10 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         for (int i = 0; i < newCharacterIds.length; i++) {
                           final id = newCharacterIds[i];
                           if (isEditing && originalCharacterIds.contains(id)) {
-                            await gp.updateCharacterName(id, newCharacterName[i]);
+                            await gp.updateCharacterName(
+                              id,
+                              newCharacterName[i],
+                            );
                           } else {
                             await gp.addCharacter(
                               Character(
@@ -593,7 +698,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         Future<void> syncQuestList(
                           Map<String, List<EditableQuestItem>> byCharacter,
                           QuestCategory category,
-                        ) async{
+                        ) async {
                           for (final characterId in byCharacter.keys) {
                             // 이미 삭제된 캐릭터에 딸린 항목은 건너뜀 (deleteCharacterById가 이미 정리함)
                             if (!newCharacterIds.contains(characterId))
@@ -641,18 +746,12 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           }
                         }
 
-                        await syncQuestList(
-                          weeklyToSave,
-                          QuestCategory.weekly,
-                        );
+                        await syncQuestList(weeklyToSave, QuestCategory.weekly);
                         await syncQuestList(
                           monthlyToSave,
                           QuestCategory.monthly,
                         );
-                        await syncQuestList(
-                          goalToSave,
-                          QuestCategory.goal,
-                        );
+                        await syncQuestList(goalToSave, QuestCategory.goal);
 
                         if (isEditing) {
                           final removedQuestIds = originalCharacterQuestIds
@@ -702,7 +801,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               visualDensity: VisualDensity.compact,
             ),
-            text=='캐릭터별 설정' ? Text('주간/월간/목표 없음'):Text('없음'),
+            text == '캐릭터별 설정' ? Text('주간/월간/목표 없음') : Text('없음'),
           ],
         ),
       ],
@@ -716,7 +815,9 @@ class _GameSetupPageState extends State<GameSetupPage> {
         Padding(
           padding: const EdgeInsets.all(5.0),
           child: TextFormField(
-            key: ValueKey('daily_${dailyQuests[i].id ?? 'new_$i'}'),
+            key: ValueKey(
+              'daily_${_templateGeneration}_${dailyQuests[i].id ?? 'new_$i'}',
+            ),
             initialValue: dailyQuests[i].name,
             onChanged: (String name) {
               dailyQuests[i].name = name;
@@ -759,7 +860,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
           padding: const EdgeInsets.all(5.0),
           child: TextFormField(
             key: ValueKey(
-              'weekly_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
+              'weekly_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
             ),
             initialValue: currentList[i].name,
             onChanged: (String name) {
@@ -803,7 +904,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
           padding: const EdgeInsets.all(5.0),
           child: TextFormField(
             key: ValueKey(
-              'monthly_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
+              'monthly_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
             ),
             initialValue: currentList[i].name,
             onChanged: (String name) {
@@ -850,7 +951,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
             children: [
               TextFormField(
                 key: ValueKey(
-                  'goal_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
+                  'goal_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
                 ),
                 initialValue: goal.name,
                 onChanged: (value) {
@@ -878,10 +979,10 @@ class _GameSetupPageState extends State<GameSetupPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 6,),
+              SizedBox(height: 6),
               TextFormField(
                 key: ValueKey(
-                  'goal_memo_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
+                  'goal_memo_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
                 ),
                 initialValue: goal.memo,
                 onChanged: (value) {
@@ -901,7 +1002,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 6,),
+              SizedBox(height: 6),
               Container(
                 height: 100,
                 decoration: BoxDecoration(
@@ -914,7 +1015,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                     Expanded(
                       child: CupertinoPicker(
                         key: ValueKey(
-                          'goal_month_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
+                          'goal_month_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
                         ),
                         itemExtent: 32,
                         scrollController: FixedExtentScrollController(
@@ -945,7 +1046,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                     Expanded(
                       child: CupertinoPicker(
                         key: ValueKey(
-                          'goal_day_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
+                          'goal_day_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
                         ),
                         itemExtent: 32,
                         scrollController: FixedExtentScrollController(
@@ -1052,7 +1153,9 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         },
                         style: TextStyle(
                           fontSize: 14,
-                          color: isThisSelected ? colorScheme.onPrimary : Colors.black,
+                          color: isThisSelected
+                              ? colorScheme.onPrimary
+                              : Colors.black,
                         ),
                         textAlign: TextAlign.center,
                         decoration: const InputDecoration(

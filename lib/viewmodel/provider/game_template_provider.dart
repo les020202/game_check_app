@@ -28,6 +28,10 @@ class GameTemplateProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<List<GameTemplate>> getTemplatesForType(GameType type) {
+    return _templateService.getTemplatesByTypes({type});
+  }//게임 설정 페이지에서의 템플릿
+
   Future<void> loadFilteredTemplates() async {
     isLoading = true;
     notifyListeners();

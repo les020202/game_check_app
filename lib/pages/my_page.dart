@@ -343,6 +343,10 @@ class _MyPageState extends State<MyPage> {
                                 Icon(Icons.delete_outline),
                                 TextButton(
                                   onPressed: () async {
+                                    if(!isLoggedIn){
+                                      showSnackBar(context, '로그인 상태가 아닙니다.');
+                                      return;
+                                    }
                                     final ok = await showReauthenticationDialog(
                                       context,
                                       (password) =>

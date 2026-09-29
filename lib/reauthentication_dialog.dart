@@ -56,8 +56,12 @@ class _ReauthenticationDialogState extends State<_ReauthenticationDialog> {
 
   @override
   Widget build(BuildContext context) {
+    TextTheme textTheme = Theme.of(context).textTheme;
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
     return AlertDialog(
-      title: const Text('비밀번호 확인'),
+      title: Text('비밀번호 확인',style: textTheme.titleLarge?.copyWith(
+        fontWeight: FontWeight.w700,
+      )),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -81,17 +85,26 @@ class _ReauthenticationDialogState extends State<_ReauthenticationDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context, false),
-          child: const Text('취소'),
+          child: Text('취소',style: textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          )),
         ),
-        ElevatedButton(
+        FilledButton(
           onPressed: _isLoading ? null : _submit,
+          style: FilledButton.styleFrom(
+            backgroundColor: colorScheme.error,
+            foregroundColor: colorScheme.onError,
+          ),
           child: _isLoading
               ? const SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('탈퇴하기'),
+              : Text('탈퇴하기',style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onPrimary,
+                )),
         ),
       ],
     );
