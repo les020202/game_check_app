@@ -66,28 +66,6 @@ class _FaqPageState extends State<FaqPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextField(
-                    decoration: InputDecoration(
-                      hintText: '궁금한 내용을 검색해보세요.',
-                      filled: true,
-                      fillColor: colorScheme.onPrimary,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      suffixIcon: IconButton(
-                        icon: Icon(Icons.search),
-                        onPressed: () {
-                          //검색한 내용이 관련된 것이 뜨게하는 로직
-                        },
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 12),
                   SizedBox(
                     height: 40,
                     child: ListView.builder(
