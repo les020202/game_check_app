@@ -110,15 +110,15 @@ class _GameMainPageState extends State<GameMainPage> {
                     children: [
                       Icon(Icons.error_outline),
                       Text(
-                        ' 표시 방식 안내',
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w400,
+                        ' 퀘스트 완료 표시 기준 안내',
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ],
                   ),
                   Text(
-                    '● 퀘스트 완료 표시 기준\n완료(파랑) : 모든 퀘스트 완료\n'
+                    '완료(파랑) : 모든 퀘스트 완료\n'
                     '부분 완료(주황) : 완료 캐릭터 수 / 전체 캐릭터 수 완료\n'
                     '미완료(빨강) : 모든 퀘스트 미완료',
                     style: textTheme.bodyMedium?.copyWith(

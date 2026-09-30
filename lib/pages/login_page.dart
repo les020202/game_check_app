@@ -9,7 +9,7 @@ import '../widgets/custom_app_bar.dart';
 import '/widgets/custom_button.dart';
 
 class LoginPage extends StatefulWidget {
-  LoginPage({super.key});
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -18,7 +18,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
-  bool isChecked = false;
   String? email;
   String? password;
 
@@ -118,20 +117,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     Row(
                       children: [
-                        Checkbox(
-                          value: isChecked,
-                          onChanged: (value) {
-                            setState(() {
-                              isChecked = !isChecked;
-                            });
-                          },
-                        ),
-                        Text(
-                          '자동 로그인',
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
                         Spacer(),
                         TextButton(
                           onPressed: () {
@@ -146,7 +131,8 @@ class _LoginPageState extends State<LoginPage> {
                     CustomButton(
                       customText: '로그인',
                       onPressed: () async {
-                        if (!(_formKey.currentState?.validate() ?? false)) return;
+                        if (!(_formKey.currentState?.validate() ?? false))
+                          return;
                         _formKey.currentState?.save();
                         try {
                           await context.read<FirebaseAuthProvider>().signIn(
@@ -194,7 +180,18 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     CustomButton(
                       customText: 'Google로 계속하기',
-                      onPressed: () {},
+                      onPressed: () async {
+                        try {
+                          await context
+                              .read<FirebaseAuthProvider>()
+                              .signInWithGoogle();
+                          if (!context.mounted) return;
+                          showSnackBar(context, '로그인이 되었습니다.');
+                          context.go('/game_main_page');
+                        } catch (error) {
+                          if (context.mounted) showSnackBar(context, '$error');
+                        }
+                      },
                       backgroundColors: colorScheme.onPrimary,
                       fontStyle: textTheme.bodyMedium!.copyWith(
                         color: colorScheme.primary,

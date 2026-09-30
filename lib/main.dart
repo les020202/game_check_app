@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:game_check_app/firebase_options.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -11,10 +12,12 @@ import 'services/firebase_auth_service.dart';
 import 'services/drift_game_service.dart';
 import 'services/firebase_storage_service.dart';
 import 'services/firestore_game_service.dart';
+import 'services/firestore_support_service.dart';
 import 'services/game_service.dart';
 import 'services/game_template_service.dart';
 import 'viewmodel/app_preferences.dart';
 import 'viewmodel/provider/firebase_auth_provider.dart';
+import 'viewmodel/provider/firestore_support_provider.dart';
 import 'viewmodel/provider/game_provider.dart';
 import 'viewmodel/provider/game_template_provider.dart';
 
@@ -28,6 +31,10 @@ void main() async {
   final router = createRouter(onboardingDone);
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await GoogleSignIn.instance.initialize(
+    serverClientId: const String.fromEnvironment('GOOGLE_SERVER_CLIENT_ID'),
+  );
   runApp(MyApp(db: db, router: router));
 }
 
@@ -69,6 +76,23 @@ class MyApp extends StatelessWidget {
             return GameProvider(
               uid == null ? DriftGameService(db) : FirestoreGameService(uid),
             );
+          },
+        ),
+        ChangeNotifierProxyProvider<
+          FirebaseAuthProvider,
+          FirestoreSupportProvider?
+        >(
+          create: (context) {
+            final uid = context.read<FirebaseAuthProvider>().user?.id;
+            return uid == null
+                ? null
+                : FirestoreSupportProvider(FirestoreSupportService(uid));
+          },
+          update: (_, auth, previous) {
+            final uid = auth.user?.id;
+            if (uid == null) return null;
+            if (previous != null) return previous;
+            return FirestoreSupportProvider(FirestoreSupportService(uid));
           },
         ),
       ],

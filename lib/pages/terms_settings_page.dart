@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
+import '../viewmodel/provider/firestore_support_provider.dart';
 import '/widgets/app_switch.dart';
 import '/widgets/custom_app_bar.dart';
 
@@ -13,20 +15,45 @@ class TermsSettingsPage extends StatefulWidget {
 }
 
 class _TermsSettingsPageState extends State<TermsSettingsPage> {
-  List<String> reqTerms = ['서비스 이용약관', '개인정보 수집 및 이용 동의'];
-  List<String> reqTermsText = ['${DateFormat('yyyy.mm.dd').format(DateTime(2026, 03, 15))} 동의', '${DateFormat('yyyy.mm.dd').format(DateTime(2026, 03, 15))} 동의'];
-  List<String> reqTermsAddress= ['/my_page/terms_settings_page/terms_detail_page','/my_page/terms_settings_page/terms_detail_page'];
+  List<String> reqTerms=[];
+  List<String> reqTermsText=[];
+  List<String> reqTermsAddress=[];
 
-  List<String> terms = ['마케팅 정보 수신 동의'];
-  List<String> termsText = ['이벤트, 혜택 정보를 이메일로 받아요'];
-  List<String> termsAddress= ['/my_page/terms_settings_page/terms_detail_page'];
+  List<String> terms=[];
+  List<String> termsText=[];
+  List<String> termsAddress=[];
 
-  bool isOn=false;
+  bool? isOn;
+  
+  bool _isLoading=false;
+  @override
+  void initState(){
+    super.initState();  
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData()); 
+  }
+
+  Future<void> _loadInitialData() async {
+    final gp = Provider.of<FirestoreSupportProvider>(context, listen: false);
+    await gp.loadAgreement();
+    isOn=gp.agreement!.marketingConsent;
+    reqTerms = ['서비스 이용약관', '개인정보 수집 및 이용 동의'];
+    reqTermsText = ['${DateFormat('yyyy.MM.dd').format(gp.agreement!.termsOfService.agreedAt)} 동의', '${DateFormat('yyyy.MM.dd').format(gp.agreement!.privacyPolicy.agreedAt)} 동의'];
+    reqTermsAddress= ['/my_page/terms_settings_page/terms_detail_page/${0}','/my_page/terms_settings_page/terms_detail_page/${1}'];
+    terms = ['마케팅 정보 수신 동의'];
+    termsText = ['이벤트, 혜택 정보를 이메일로 받아요'];
+    termsAddress= ['/my_page/terms_settings_page/terms_detail_page/${2}'];
+    if (!mounted) return;
+    setState(() {
+      _isLoading=true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final gp = Provider.of<FirestoreSupportProvider>(context, listen: false);
+    if(!_isLoading) WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData()); 
     return Scaffold(
       appBar: CustomAppBar(title: '이용약관 및 개인정보처리방침'),
       body: SafeArea(
@@ -95,9 +122,10 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
                     children: [
                       getRequiredTerms(
                         textTheme, terms, termsText, 
-                        AppSwitch(value: isOn, onChanged: (value) {
+                        AppSwitch(value: isOn ?? false, onChanged: (value) {
                           setState(() {
                             isOn=value;
+                            gp.setMarketingConsent(value);
                           });
                         }, scale: 0.8),
                         termsAddress

@@ -174,6 +174,7 @@ class _MyPageState extends State<MyPage> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     TextFormField(
+                                      key: ValueKey('nickname_${user?.id}_$nickName'),
                                       minLines: 1,
                                       maxLines: 5,
                                       initialValue: nickName,
@@ -205,6 +206,7 @@ class _MyPageState extends State<MyPage> {
                                       },
                                     ),
                                     TextFormField(
+                                      key: ValueKey('email_${user?.id}_$email'),
                                       minLines: 1,
                                       maxLines: 5,
                                       enabled: false,
@@ -345,6 +347,13 @@ class _MyPageState extends State<MyPage> {
                                   onPressed: () async {
                                     if(!isLoggedIn){
                                       showSnackBar(context, '로그인 상태가 아닙니다.');
+                                      return;
+                                    }
+                                    if(authProvider.isGoogleLogin){
+                                      await authProvider.deleteAccountWithGoogle();
+                                      if(context.mounted){
+                                        showSnackBar(context, '탈퇴처리가 완료되었습니다.');
+                                      }
                                       return;
                                     }
                                     final ok = await showReauthenticationDialog(

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../models/user_agreement.dart';
+import '../services/firestore_support_service.dart';
 import '../show_snackbar.dart';
 import '../viewmodel/provider/firebase_auth_provider.dart';
 import '../widgets/custom_app_bar.dart';
@@ -219,13 +221,32 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       child: ElevatedButton(
                         onPressed: () async {
                           if (!_formKey.currentState!.validate()) return;
+                          if (!isCheckeds[0][0] || !isCheckeds[1][0]) {
+                            showSnackBar(context, '필수 약관에 동의해주세요.');
+                            return;
+                          }
                           _formKey.currentState!.save();
                           try {
-                            await context.read<FirebaseAuthProvider>().signUp(
-                              email!,
-                              password!,
-                              nickName,
+                            final uid = await context
+                                .read<FirebaseAuthProvider>()
+                                .signUp(email!, password!, nickName!);
+
+                            final agreement = UserAgreement(
+                              uid: uid,
+                              termsOfService: AgreementStatus(
+                                agreed: isCheckeds[0][0],
+                                agreedAt: DateTime.now(),
+                              ),
+                              privacyPolicy: AgreementStatus(
+                                agreed: isCheckeds[1][0],
+                                agreedAt: DateTime.now(),
+                              ),
+                              marketingConsent: isCheckeds[2][0],
                             );
+                            await FirestoreSupportService(
+                              uid,
+                            ).setUserAgreement(agreement);
+                            
                             if (!mounted) return;
                             showSnackBar(context, '회원가입이 완료되었습니다.');
                             context.go('/my_page/login_page');

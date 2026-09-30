@@ -46,3 +46,12 @@ app.*.map.json
 
 lib/firebase_options.dart
 android/app/google-services.json
+env.json
+.vscode/launch.json
+
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+*.env
+.env*
+!.env.example

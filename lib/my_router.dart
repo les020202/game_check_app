@@ -79,7 +79,7 @@ GoRouter createRouter(bool onboardingDone) {
                       path: 'game_detail_week_page/:games_index',
                       builder: (context, state) {
                         String? gamesIndexString =
-                        state.pathParameters['games_index'];
+                            state.pathParameters['games_index'];
                         final gamesIndex = int.parse(gamesIndexString!);
                         return GameDetailWeekPage(gamesIndex: gamesIndex);
                       }
@@ -155,8 +155,14 @@ GoRouter createRouter(bool onboardingDone) {
                   builder: (context, state) => TermsSettingsPage(),
                   routes: [
                     GoRoute(
-                      path: 'terms_detail_page',
-                      builder: (context, state) => TermsDetailPage(),
+                      path: 'terms_detail_page/:terms_index',
+                      builder: (context, state) {
+                        String? termsIndexString =
+                            state.pathParameters['terms_index'];
+                        final termsIndex = int.parse(termsIndexString!);
+                        return TermsDetailPage(termsIndex: termsIndex);
+                      }
+
                     ),
                   ],
                 ),

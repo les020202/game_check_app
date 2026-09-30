@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import '/widgets/custom_app_bar.dart';
 
-class TermsDetailPage extends StatelessWidget {
-  TermsDetailPage({super.key});
-  
-  List<List<String>> termsDetails=[
+class TermsDetailPage extends StatefulWidget {
+  final int termsIndex;
+  TermsDetailPage({super.key,required this.termsIndex});
+
+  @override
+  State<TermsDetailPage> createState() => _TermsDetailPageState();
+}
+
+class _TermsDetailPageState extends State<TermsDetailPage> {
+  List<List<String>> terms0=[
     [
       '제1조 (목적)',
-      '이 약관은 게임 퀘스트 체크리스트(이하 "회사")가\n제공하는 서비스의 이용조건 및 절차, 회사와\n이용자의 권리·의무 및 책임사항을 규정함을\n목적으로 합니다.'
+      '이 약관은 게임 체크 앱 개발자가\n제공하는 서비스의 이용조건 및 절차, 회사와\n이용자의 권리·의무 및 책임사항을 규정함을\n목적으로 합니다.'
     ],
     [
       '제2조 (정의)',
@@ -30,6 +36,60 @@ class TermsDetailPage extends StatelessWidget {
       '2. 회원은 언제든지 마이페이지를 통해 탈퇴를 요청할 수 있으며, 회사는 관련 법령이 정하는 바에 따라 이를 즉시 처리합니다.'
     ],
   ];
+
+  List<List<String>> terms1=[
+    [
+      '수집·이용 목적', '회원 가입 및 식별, 민원 처리, 서비스 부정이용 방지',
+    ],
+    [
+      '수집 항목', '1. [일반 가입] 이메일 주소, 비밀번호, 닉네임',
+      '2. [구글 소셜 가입] 구글 계정 이메일 주소, 소셜 고유 식별자(UID), 프로필 사진 및 닉네임'
+    ],
+    [
+      '보유 및 이용 기간', '회원 탈퇴 시 즉시 파기 (단, 관련 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관)'
+    ],
+    [
+      '동의 거부 권리 및 불이익', '위 개인정보 수집·이용에 대한 동의를 거부할 수 있습니다. 단, 필수항목 동의 거부 시 회원가입이 불가능합니다.'
+    ],
+  ];
+
+  List<List<String>> terms2=[
+    [
+      '수집·이용 목적', '신규 서비스 안내, 이벤트 정보 제공, 맞춤형 마케팅 활용',
+    ],
+    [
+      '수집 항목','이메일 주소, 앱 푸시 토큰'
+    ],
+    [
+      '보유 및 이용 기간', '회원 탈퇴 시 또는 동의 철회 시까지',
+    ],
+    [
+      '전송 방법', '앱 푸시(Push), 이메일',
+    ],
+    [
+      '동의 거부권 및 불이익',
+      '위 마케팅 정보 수신 동의는 선택 사항입니다. 동의를 거부하시더라도 기본 서비스 이용은 제한되지 않으며, 앱 내 설정을 통해 언제든지 수신 동의를 철회할 수 있습니다.',
+    ],
+  ];
+  List<List<String>> termsDetails=[];
+  List<String> termsDays=[
+    '시행일 : 2026.10.01 버전 1.0',
+    '시행일 : 2026.10.01 버전 1.0',
+    '시행일 : 2026.10.01 버전 1.0',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    if(widget.termsIndex==0){
+      termsDetails=terms0;
+    }else if(widget.termsIndex==1){
+      termsDetails=terms1;
+    }else{
+      termsDetails=terms2;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -57,7 +117,7 @@ class TermsDetailPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.all(10.0),
-                      child: Text('시행일 : 2026.03.01 버전 1.2'),
+                      child: Text('${termsDays[widget.termsIndex]}'),
                     ),
                     Divider(),
                     ListView.builder(

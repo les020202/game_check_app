@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../models/app_user.dart';
-import '../../services/firestore_game_service.dart';
 import '../../services/game_service.dart';
 import '../../models/character.dart';
 import '../../models/character_quest_item.dart';

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/app_user.dart';
 
 class FirebaseAuthService {
@@ -103,6 +103,7 @@ class FirebaseAuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      await GoogleSignIn.instance.signOut(); //소셜 로그아웃
     } catch (e) {
       throw Exception('$e');
     }
@@ -205,6 +206,52 @@ class FirebaseAuthService {
     }
     if (errorMessage != null) {
       throw Exception(errorMessage);
+    }
+  }
+
+  Future<void> signInWithGoogle() async { //소셜로그인(구글)
+    try {
+      final googleUser = await GoogleSignIn.instance.authenticate();
+      final googleAuth = googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+
+      await _auth.signInWithCredential(credential);
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw Exception('로그인이 취소되었습니다.');
+      }
+      throw Exception('구글 로그인 중 오류가 발생했습니다.$e');
+    } on FirebaseAuthException catch (error) {
+      String errorMessage;
+      switch (error.code) {
+        case 'account-exists-with-different-credential':
+          errorMessage = '이미 다른 방법으로 가입된 이메일입니다. 이메일 로그인을 이용해주세요.';
+          break;
+        default:
+          errorMessage = error.message ?? '구글 로그인 중 오류가 발생했습니다.';
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      throw Exception('구글 로그인 중 오류가 발생했습니다.$e');
+    }
+  }
+
+  Future<void> deleteAccountWithGoogle() async { //소셜계정 탈퇴(구글)
+    try {
+      final googleUser = await GoogleSignIn.instance.authenticate();
+      final googleAuth = googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+
+      await _auth.currentUser?.reauthenticateWithCredential(credential);
+      await _auth.currentUser?.delete();
+    } catch (e) {
+      throw Exception('회원탈퇴 중 오류가 발생했습니다.$e');
     }
   }
 }
