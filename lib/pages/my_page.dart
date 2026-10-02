@@ -4,9 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../show_snackbar.dart';
+import '../utils/show_snackbar.dart';
 import '../viewmodel/provider/firebase_auth_provider.dart';
-import '../reauthentication_dialog.dart';
+import '../dialogs/reauthentication_dialog.dart';
 
 class MyPage extends StatefulWidget {
   const MyPage({super.key});

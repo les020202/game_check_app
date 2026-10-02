@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
-import '../game_template_picker.dart';
+import '../dialogs/game_template_picker.dart';
 import '../models/character.dart';
 import '../models/character_quest_item.dart';
 import '../models/daily_quest_item.dart';

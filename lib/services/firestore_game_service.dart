@@ -128,6 +128,33 @@ class FirestoreGameService implements GameService {
     return docs.map((d) => fromMap(d.data())).toList();
   }
 
+  //삭제 로직
+  Future<void> _deleteRefs(List<DocumentReference> refs) async {
+    for (var i = 0; i < refs.length; i += 450) {
+      final batch = _fs.batch();
+      for (final ref in refs.skip(i).take(450)) {
+        batch.delete(ref);
+      }
+      await batch.commit();
+    }
+  }
+
+  //청크로 나눠 삭제하는 헬퍼
+  Future<List<DocumentReference>> _logRefsByQuestIds(List<String> ids) async {
+    final refs = <DocumentReference>[];
+    // whereIn은 한 번에 최대 30개
+    for (var i = 0; i < ids.length; i += 30) {
+      final chunk = ids.skip(i).take(30).toList();
+      final snap = await _fs
+          .collection('questLogs')
+          .where('userId', isEqualTo: uid)
+          .where('questItemId', whereIn: chunk)
+          .get();
+      refs.addAll(snap.docs.map((d) => d.reference));
+    }
+    return refs;
+  }
+
   // ---------- Game ----------
   @override
   Future<List<Game>> getGames() async {
@@ -147,27 +174,46 @@ class FirestoreGameService implements GameService {
 
   @override
   Future<void> addGame(Game game) async {
-    try{
+    try {
       await _fs.collection('games').doc(game.id).set(_gameToMap(game));
-    }catch (e) {
+    } catch (e) {
       throw Exception('addGame error');
     }
   }
 
   @override
   Future<void> updateGame(String gameId, Game game) async {
-    try{
-      _fs.collection('games').doc(gameId).update(_gameToMap(game));
-    }catch (e) {
+    try {
+      await _fs.collection('games').doc(gameId).update(_gameToMap(game));
+    } catch (e) {
       throw Exception('updateGame error');
     }
   }
 
   @override
   Future<void> deleteGame(String gameId) async {
-    try{
-      _fs.collection('games').doc(gameId).delete();
-    }catch (e) {
+    try {
+      Future<QuerySnapshot<Map<String, dynamic>>> byGame(String col) => _fs
+          .collection(col)
+          .where('userId', isEqualTo: uid)
+          .where('gameId', isEqualTo: gameId)
+          .get();
+
+      final cq = await byGame('characterQuests');
+      final dailys = await byGame('dailys');
+      final chars = await byGame('characters');
+
+      final questIds = [...cq.docs, ...dailys.docs].map((d) => d.id).toList();
+      final logRefs = await _logRefsByQuestIds(questIds);
+
+      await _deleteRefs([
+        ...logRefs,
+        ...cq.docs.map((d) => d.reference),
+        ...dailys.docs.map((d) => d.reference),
+        ...chars.docs.map((d) => d.reference),
+        _fs.collection('games').doc(gameId),
+      ]);
+    } catch (e) {
       throw Exception('deleteGame error');
     }
   }
@@ -189,29 +235,47 @@ class FirestoreGameService implements GameService {
 
   @override
   Future<void> addCharacter(Character character) async {
-    try{
-      _fs.collection('characters').doc(character.id).set(_characterToMap(character));
-    }catch (e) {
+    try {
+      await _fs
+          .collection('characters')
+          .doc(character.id)
+          .set(_characterToMap(character));
+    } catch (e) {
       throw Exception('addCharacter error');
     }
   }
 
   @override
   Future<void> updateCharacterName(String characterId, String newName) async {
-    try{
-      _fs.collection('characters').doc(characterId).update({'name': newName});
-    }catch (e) {
+    try {
+      await _fs.collection('characters').doc(characterId).update({
+        'name': newName,
+      });
+    } catch (e) {
       throw Exception('updateCharacterName error');
     }
   }
 
   @override
   Future<void> deleteCharacter(String characterId) async {
-    try{
-      _fs.collection('characters').doc(characterId).delete();
-      _fs.collection('characterQuests').doc(characterId).delete();
-      _fs.collection('questLogs').doc(characterId).delete();
-    }catch (e) {
+    try {
+      final cq = await _fs
+          .collection('characterQuests')
+          .where('userId', isEqualTo: uid)
+          .where('characterId', isEqualTo: characterId)
+          .get();
+      final logs = await _fs
+          .collection('questLogs')
+          .where('userId', isEqualTo: uid)
+          .where('characterId', isEqualTo: characterId)
+          .get();
+
+      await _deleteRefs([
+        ...cq.docs.map((d) => d.reference),
+        ...logs.docs.map((d) => d.reference),
+        _fs.collection('characters').doc(characterId),
+      ]);
+    } catch (e) {
       throw Exception('deleteCharacter error');
     }
   }
@@ -233,27 +297,31 @@ class FirestoreGameService implements GameService {
 
   @override
   Future<void> addDailyQuest(DailyQuestItem dailyQuest) async {
-    try{
-      _fs.collection('dailys').doc(dailyQuest.id).set(_dailyToMap(dailyQuest));
-    }catch (e) {
+    try {
+      await _fs
+          .collection('dailys')
+          .doc(dailyQuest.id)
+          .set(_dailyToMap(dailyQuest));
+    } catch (e) {
       throw Exception('addDailyQuest error');
     }
   }
 
   @override
   Future<void> updateDailyQuestName(String dailyId, String newName) async {
-    try{
-      _fs.collection('dailys').doc(dailyId).update({'name': newName});
-    }catch (e) {
+    try {
+      await _fs.collection('dailys').doc(dailyId).update({'name': newName});
+    } catch (e) {
       throw Exception('updateDailyQuestName error');
     }
   }
 
   @override
   Future<void> deleteDailyById(String dailyId) async {
-    try{
-      _fs.collection('dailys').doc(dailyId).delete();
-    }catch (e) {
+    try {
+      final refs = await _logRefsByQuestIds([dailyId]);
+      await _deleteRefs([...refs, _fs.collection('dailys').doc(dailyId)]);
+    } catch (e) {
       throw Exception('deleteDailyById error');
     }
   }
@@ -275,9 +343,12 @@ class FirestoreGameService implements GameService {
 
   @override
   Future<void> addCharacterQuest(CharacterQuestItem characterQuest) async {
-    try{
-      _fs.collection('characterQuests').doc(characterQuest.id).set(_characterQuestToMap(characterQuest));
-    }catch (e) {
+    try {
+      await _fs
+          .collection('characterQuests')
+          .doc(characterQuest.id)
+          .set(_characterQuestToMap(characterQuest));
+    } catch (e) {
       throw Exception('addCharacterQuest error');
     }
   }
@@ -289,23 +360,26 @@ class FirestoreGameService implements GameService {
     String? memo,
     DateTime? dueDate,
   }) async {
-    try{
-      _fs.collection('characterQuests').doc(questId)
-      .update({
+    try {
+      await _fs.collection('characterQuests').doc(questId).update({
         'name': name,
         'memo': memo,
         'dueDate': dueDate,
       });
-    }catch (e) {
+    } catch (e) {
       throw Exception('updateCharacterQuest error');
     }
   }
 
   @override
   Future<void> deleteCharacterQuestById(String questId) async {
-    try{
-      _fs.collection('characterQuests').doc(questId).delete();
-    }catch (e) {
+    try {
+      final refs = await _logRefsByQuestIds([questId]);
+      await _deleteRefs([
+        ...refs,
+        _fs.collection('characterQuests').doc(questId),
+      ]);
+    } catch (e) {
       throw Exception('deleteCharacterQuestById error');
     }
   }
@@ -334,6 +408,37 @@ class FirestoreGameService implements GameService {
 
   @override
   Future<void> upsertQuestLog(QuestLog log) async {
-    _fs.collection('questLogs').doc(log.id).set(_questLogToMap(log));
+    await _fs.collection('questLogs').doc(log.id).set(_questLogToMap(log));
+  }
+
+  // ---------- 로그인 시 로컬 데이터 이전용 ----------
+  Future<void> importAll({
+    required List<Game> games,
+    required List<Character> characters,
+    required List<DailyQuestItem> dailys,
+    required List<CharacterQuestItem> characterQuests,
+    required List<QuestLog> logs,
+  }) async {
+    final writes = <(DocumentReference, Map<String, dynamic>)>[
+      for (final g in games)
+        (_fs.collection('games').doc(g.id), _gameToMap(g)),
+      for (final c in characters)
+        (_fs.collection('characters').doc(c.id), _characterToMap(c)),
+      for (final d in dailys)
+        (_fs.collection('dailys').doc(d.id), _dailyToMap(d)),
+      for (final q in characterQuests)
+        (_fs.collection('characterQuests').doc(q.id), _characterQuestToMap(q)),
+      for (final l in logs)
+        (_fs.collection('questLogs').doc(l.id), _questLogToMap(l)),
+    ];
+
+    // batch는 최대 500개라 450개씩 나눠서 커밋
+    for (var i = 0; i < writes.length; i += 450) {
+      final batch = _fs.batch();
+      for (final w in writes.skip(i).take(450)) {
+        batch.set(w.$1, w.$2);
+      }
+      await batch.commit();
+    }
   }
 }

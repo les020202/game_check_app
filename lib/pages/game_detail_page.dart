@@ -14,7 +14,7 @@ import '../models/weekday.dart';
 import '../viewmodel/provider/game_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/questProgressBadge.dart';
-import '../quest_period.dart';
+import '../utils/quest_period.dart';
 
 class GameDetailPage extends StatefulWidget {
   final int gamesIndex;

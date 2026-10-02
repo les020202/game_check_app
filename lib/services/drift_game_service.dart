@@ -8,31 +8,31 @@ import '../models/daily_quest_item.dart';
 import '../models/quest_log.dart';
 import 'game_service.dart';
 
-class DriftGameService implements GameService{
+class DriftGameService implements GameService {
   final AppDatabase _db;
   DriftGameService(this._db);
 
   // ---------- 매핑 변환 함수(Entity <-> Model) ----------
   Game _toGame(GameEntity e) => Game(
-        id: e.id,
-        userId: null,
-        name: e.name,
-        gameType: e.gameType,
-        gameResetHour: e.gameResetHour,
-        gameResetMinute: e.gameResetMinute,
-        weeklyResetWeekday: e.weeklyResetWeekday,
-        createdAt: e.createdAt,
-      );
+    id: e.id,
+    userId: null,
+    name: e.name,
+    gameType: e.gameType,
+    gameResetHour: e.gameResetHour,
+    gameResetMinute: e.gameResetMinute,
+    weeklyResetWeekday: e.weeklyResetWeekday,
+    createdAt: e.createdAt,
+  );
 
   GamesCompanion _gameToCompanion(Game g) => GamesCompanion(
-        id: Value(g.id),
-        name: Value(g.name),
-        gameType: Value(g.gameType),
-        gameResetHour: Value(g.gameResetHour),
-        gameResetMinute: Value(g.gameResetMinute),
-        weeklyResetWeekday: Value(g.weeklyResetWeekday),
-        createdAt: Value(g.createdAt),
-      );
+    id: Value(g.id),
+    name: Value(g.name),
+    gameType: Value(g.gameType),
+    gameResetHour: Value(g.gameResetHour),
+    gameResetMinute: Value(g.gameResetMinute),
+    weeklyResetWeekday: Value(g.weeklyResetWeekday),
+    createdAt: Value(g.createdAt),
+  );
 
   Character _toCharacter(CharacterEntity e) =>
       Character(id: e.id, gameId: e.gameId, name: e.name);
@@ -52,12 +52,12 @@ class DriftGameService implements GameService{
       );
 
   QuestLog _toQuestLog(QuestLogEntity e) => QuestLog(
-        id: e.id,
-        questItemId: e.questItemId,
-        characterId: e.characterId,
-        periodDate: e.periodDate,
-        isCompleted: e.isCompleted,
-      );
+    id: e.id,
+    questItemId: e.questItemId,
+    characterId: e.characterId,
+    periodDate: e.periodDate,
+    isCompleted: e.isCompleted,
+  );
 
   //game
   @override
@@ -67,33 +67,63 @@ class DriftGameService implements GameService{
   }
 
   @override
-  Future<void> addGame(Game game,{String? uid}) {
+  Future<void> addGame(Game game, {String? uid}) {
     return _db.into(_db.games).insert(_gameToCompanion(game));
   }
 
   @override
   Future<void> updateGame(String gameId, Game game) {
-    return (_db.update(_db.games)..where((g) => g.id.equals(gameId)))
-        .write(_gameToCompanion(game));
+    return (_db.update(
+      _db.games,
+    )..where((g) => g.id.equals(gameId))).write(_gameToCompanion(game));
   }
 
   @override
   Future<void> deleteGame(String gameId) {
-    return (_db.delete(_db.games)..where((g) => g.id.equals(gameId))).go();
+    return _db.transaction(() async {
+      final cqIds =
+          (await (_db.select(
+                _db.characterQuestItems,
+              )..where((q) => q.gameId.equals(gameId))).get())
+              .map((q) => q.id)
+              .toList();
+      final dailyIds =
+          (await (_db.select(
+                _db.dailyQuestItems,
+              )..where((d) => d.gameId.equals(gameId))).get())
+              .map((d) => d.id)
+              .toList();
+
+      await (_db.delete(
+        _db.questLogs,
+      )..where((l) => l.questItemId.isIn([...cqIds, ...dailyIds]))).go();
+      await (_db.delete(
+        _db.characterQuestItems,
+      )..where((q) => q.gameId.equals(gameId))).go();
+      await (_db.delete(
+        _db.dailyQuestItems,
+      )..where((d) => d.gameId.equals(gameId))).go();
+      await (_db.delete(
+        _db.characters,
+      )..where((c) => c.gameId.equals(gameId))).go();
+      await (_db.delete(_db.games)..where((g) => g.id.equals(gameId))).go();
+    });
   }
 
   //character
   @override
   Future<List<Character>> getCharacters(String gameId) async {
-    final rows = await (_db.select(_db.characters)
-          ..where((c) => c.gameId.equals(gameId)))
-        .get();
+    final rows = await (_db.select(
+      _db.characters,
+    )..where((c) => c.gameId.equals(gameId))).get();
     return rows.map(_toCharacter).toList();
   }
 
   @override
   Future<void> addCharacter(Character character) {
-    return _db.into(_db.characters).insert(
+    return _db
+        .into(_db.characters)
+        .insert(
           CharactersCompanion(
             id: Value(character.id),
             gameId: Value(character.gameId),
@@ -113,26 +143,30 @@ class DriftGameService implements GameService{
     await (_db.delete(
       _db.characterQuestItems,
     )..where((q) => q.characterId.equals(characterId))).go();
-    await (_db.delete(
-      _db.characters,
-    )..where((c) => c.id.equals(characterId))).go();
+
     await (_db.delete(
       _db.questLogs,
+    )..where((q) => q.characterId.equals(characterId))).go();
+
+    await (_db.delete(
+      _db.characters,
     )..where((c) => c.id.equals(characterId))).go();
   }
 
   //DailyQuest
   @override
   Future<List<DailyQuestItem>> getDailyQuests(String gameId) async {
-    final rows = await (_db.select(_db.dailyQuestItems)
-          ..where((d) => d.gameId.equals(gameId)))
-        .get();
+    final rows = await (_db.select(
+      _db.dailyQuestItems,
+    )..where((d) => d.gameId.equals(gameId))).get();
     return rows.map(_toDaily).toList();
   }
 
   @override
   Future<void> addDailyQuest(DailyQuestItem dailyQuest) {
-    return _db.into(_db.dailyQuestItems).insert(
+    return _db
+        .into(_db.dailyQuestItems)
+        .insert(
           DailyQuestItemsCompanion(
             id: Value(dailyQuest.id),
             gameId: Value(dailyQuest.gameId),
@@ -149,23 +183,30 @@ class DriftGameService implements GameService{
 
   @override
   Future<void> deleteDailyById(String dailyId) {
-    return (_db.delete(
-      _db.dailyQuestItems,
-    )..where((d) => d.id.equals(dailyId))).go();
+    return _db.transaction(() async {
+      await (_db.delete(
+        _db.questLogs,
+      )..where((l) => l.questItemId.equals(dailyId))).go();
+      await (_db.delete(
+        _db.dailyQuestItems,
+      )..where((d) => d.id.equals(dailyId))).go();
+    });
   }
-  
+
   //CharacterQuest
   @override
   Future<List<CharacterQuestItem>> getCharacterQuests(String gameId) async {
-    final rows = await (_db.select(_db.characterQuestItems)
-          ..where((q) => q.gameId.equals(gameId)))
-        .get();
+    final rows = await (_db.select(
+      _db.characterQuestItems,
+    )..where((q) => q.gameId.equals(gameId))).get();
     return rows.map(_toCharacterQuest).toList();
   }
 
   @override
   Future<void> addCharacterQuest(CharacterQuestItem q) {
-    return _db.into(_db.characterQuestItems).insert(
+    return _db
+        .into(_db.characterQuestItems)
+        .insert(
           CharacterQuestItemsCompanion(
             id: Value(q.id),
             gameId: Value(q.gameId),
@@ -198,9 +239,14 @@ class DriftGameService implements GameService{
 
   @override
   Future<void> deleteCharacterQuestById(String questId) {
-    return (_db.delete(
-      _db.characterQuestItems,
-    )..where((q) => q.id.equals(questId))).go();
+    return _db.transaction(() async {
+      await (_db.delete(
+        _db.questLogs,
+      )..where((l) => l.questItemId.equals(questId))).go();
+      await (_db.delete(
+        _db.characterQuestItems,
+      )..where((q) => q.id.equals(questId))).go();
+    });
   }
 
   //QuestLog
@@ -210,20 +256,24 @@ class DriftGameService implements GameService{
     String? characterId,
     required DateTime periodDate,
   }) async {
-    final row = await (_db.select(_db.questLogs)
-          ..where((q) =>
-              q.questItemId.equals(questItemId) &
-              (characterId == null
-                  ? q.characterId.isNull()
-                  : q.characterId.equals(characterId)) &
-              q.periodDate.equals(periodDate)))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.questLogs)..where(
+              (q) =>
+                  q.questItemId.equals(questItemId) &
+                  (characterId == null
+                      ? q.characterId.isNull()
+                      : q.characterId.equals(characterId)) &
+                  q.periodDate.equals(periodDate),
+            ))
+            .getSingleOrNull();
     return row == null ? null : _toQuestLog(row);
   }
 
   @override
   Future<void> upsertQuestLog(QuestLog log) {
-    return _db.into(_db.questLogs).insertOnConflictUpdate(
+    return _db
+        .into(_db.questLogs)
+        .insertOnConflictUpdate(
           QuestLogsCompanion(
             id: Value(log.id),
             questItemId: Value(log.questItemId),
@@ -232,5 +282,26 @@ class DriftGameService implements GameService{
             isCompleted: Value(log.isCompleted),
           ),
         );
+  }
+
+  // ---------- 로그인 시 로컬 데이터 이전용 ----------
+  Future<bool> hasLocalData() async {
+    final games = await _db.select(_db.games).get();
+    return games.isNotEmpty;
+  }
+
+  Future<List<QuestLog>> getAllQuestLogs() async {
+    final rows = await _db.select(_db.questLogs).get();
+    return rows.map(_toQuestLog).toList();
+  }
+
+  Future<void> clearAll() {
+    return _db.transaction(() async {
+      await _db.delete(_db.questLogs).go();
+      await _db.delete(_db.characterQuestItems).go();
+      await _db.delete(_db.dailyQuestItems).go();
+      await _db.delete(_db.characters).go();
+      await _db.delete(_db.games).go();
+    });
   }
 }

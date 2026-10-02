@@ -1,4 +1,4 @@
-import '../models/game.dart';
+import '../../models/game.dart';
 
 DateTime todayPeriodFor(Game game) {
   final now = DateTime.now();

@@ -35,7 +35,13 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
   Future<void> _loadInitialData() async {
     final gp = Provider.of<FirestoreSupportProvider>(context, listen: false);
     await gp.loadAgreement();
-    isOn=gp.agreement!.marketingConsent;
+    final agreement = gp.agreement;
+    if (agreement == null) {
+      // 동의 기록이 없으면 빈 화면으로 두되, 재시도 루프는 막는다
+      if (mounted) setState(() => _isLoading = true);
+      return;
+    }
+    isOn = agreement.marketingConsent;
     reqTerms = ['서비스 이용약관', '개인정보 수집 및 이용 동의'];
     reqTermsText = ['${DateFormat('yyyy.MM.dd').format(gp.agreement!.termsOfService.agreedAt)} 동의', '${DateFormat('yyyy.MM.dd').format(gp.agreement!.privacyPolicy.agreedAt)} 동의'];
     reqTermsAddress= ['/my_page/terms_settings_page/terms_detail_page/${0}','/my_page/terms_settings_page/terms_detail_page/${1}'];

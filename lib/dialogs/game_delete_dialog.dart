@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'viewmodel/provider/game_provider.dart';
+import '../viewmodel/provider/game_provider.dart';
 
 /// 삭제 성공 시 true, 취소/실패 시 false 또는 null
 Future<bool?> showGameDeleteDialog(BuildContext context, String gameId) {

@@ -5,9 +5,6 @@ import 'package:provider/provider.dart';
 import '../viewmodel/provider/game_provider.dart';
 import '../widgets/custom_dotted_button.dart';
 import '../widgets/game_list_tile.dart';
-import '../quest_period.dart';
-
-
 class GameMainPage extends StatefulWidget {
   const GameMainPage({super.key});
 
@@ -22,38 +19,23 @@ class _GameMainPageState extends State<GameMainPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final gp = Provider.of<GameProvider>(context);   // 인스턴스 교체를 감지
-    if (identical(_lastGp, gp)) return;              // 같은 인스턴스면 무시
+    final gp = Provider.of<GameProvider>(context); // 인스턴스 교체를 감지
+    if (identical(_lastGp, gp)) return; // 같은 인스턴스면 무시
     _lastGp = gp;
-    _isLoading = true;                               // setState 없이 대입 (곧 build가 이어짐)
+    _isLoading = true; // setState 없이 대입 (곧 build가 이어짐)
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadAll(gp));
   }
 
   Future<void> _loadAll(GameProvider gp) async {
-    bool stale() => !mounted || !identical(_lastGp, gp);
-
-    await gp.loadGames();
-    if (stale()) return;
-
-    for (final game in gp.games) {
-      await gp.loadCharacters(game.id);
-      if (stale()) return;
-      await gp.loadDailyQuests(game.id);
-      if (stale()) return;
-
-      final characters = gp.characters(game.id);
-      final dailyQuests = gp.dailyQuests(game.id);
-      final todayPeriod = todayPeriodFor(game);
-
-      for (final daily in dailyQuests) {
-        for (final character in characters) {
-          await gp.loadQuestLog(daily.id, characterId: character.id, periodDate: todayPeriod,);
-          if (stale()) return;
-        }
-      }
+    try {
+      await gp.reloadAll();
+    } catch (e) {
+      debugPrint('loadAll error: $e');
     }
-
-    if (mounted) setState(() => _isLoading = false);
+    // 그 사이 Provider가 교체됐다면 새 인스턴스의 로딩이 처리하니 무시
+    if (mounted && identical(_lastGp, gp)) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -83,7 +65,9 @@ class _GameMainPageState extends State<GameMainPage> {
           children: [
             Expanded(
               child: ScrollConfiguration(
-                behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+                behavior: ScrollConfiguration.of(
+                  context,
+                ).copyWith(overscroll: false),
                 child: GameListTile(),
               ),
             ),

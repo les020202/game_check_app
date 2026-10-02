@@ -5,9 +5,10 @@ import 'package:provider/provider.dart';
 
 import '../models/user_agreement.dart';
 import '../services/firestore_support_service.dart';
-import '../show_snackbar.dart';
+import '../utils/show_snackbar.dart';
 import '../viewmodel/provider/firebase_auth_provider.dart';
 import '../widgets/custom_app_bar.dart';
+import '../dialogs/local_data_dialog.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -246,8 +247,19 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             await FirestoreSupportService(
                               uid,
                             ).setUserAgreement(agreement);
-                            
+
                             if (!mounted) return;
+                            final ok = await handleLocalDataOnLogin(
+                              context,
+                              isNewAccount: true,
+                            );
+                            if (!mounted) return;
+                            if (!ok) {
+                              context.go(
+                                '/my_page/login_page',
+                              ); // 실패 시 이미 signOut됨
+                              return;
+                            }
                             showSnackBar(context, '회원가입이 완료되었습니다.');
                             context.go('/my_page/login_page');
                           } catch (error) {

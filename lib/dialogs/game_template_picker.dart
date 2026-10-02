@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'models/game_template.dart';
-import 'models/game_type.dart';
-import 'viewmodel/provider/game_template_provider.dart';
-import 'show_snackbar.dart';
+import '../models/game_template.dart';
+import '../models/game_type.dart';
+import '../viewmodel/provider/game_template_provider.dart';
+import '../utils/show_snackbar.dart';
 
 /// 템플릿을 고르고 적용을 확정하면 그 템플릿을, 취소하면 null을 반환
 Future<GameTemplate?> showGameTemplatePicker(

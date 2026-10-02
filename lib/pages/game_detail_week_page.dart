@@ -8,7 +8,7 @@ import '../models/character_quest_item.dart';
 import '../models/daily_quest_item.dart';
 import '../models/day_quest_status.dart';
 import '../models/game.dart';
-import '../quest_period.dart';
+import '../utils/quest_period.dart';
 import '../viewmodel/provider/game_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/week_day_cell.dart';

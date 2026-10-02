@@ -50,6 +50,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider<AppDatabase>.value(value: db),
         ChangeNotifierProvider(
           create: (_) => FirebaseAuthProvider(
             FirebaseAuthService(),

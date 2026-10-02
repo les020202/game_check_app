@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../game_delete_dialog.dart';
+import '../dialogs/game_delete_dialog.dart';
 import '../models/character.dart';
 import '../models/daily_quest_item.dart';
 import '../models/day_quest_status.dart';
 import '../models/game.dart';
-import '../show_snackbar.dart';
+import '../utils/show_snackbar.dart';
 import '../viewmodel/provider/game_provider.dart';
 import '../widgets/questProgressBadge.dart';
-import '../quest_period.dart';
+import '../utils/quest_period.dart';
 
 class GameListTile extends StatelessWidget {
   GameListTile({super.key});

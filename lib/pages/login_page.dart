@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../show_snackbar.dart';
+import '../utils/show_snackbar.dart';
 import '../viewmodel/provider/firebase_auth_provider.dart';
 import '../widgets/custom_app_bar.dart';
-import '/widgets/custom_button.dart';
+import '../widgets/custom_button.dart';
+import '../dialogs/local_data_dialog.dart';
+import '../dialogs/terms_consent_dialog.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -140,6 +142,8 @@ class _LoginPageState extends State<LoginPage> {
                             password!,
                           );
                           if (!mounted) return;
+                          if (!await handleLocalDataOnLogin(context)) return;
+                          if (!mounted) return;
                           showSnackBar(context, '로그인이 되었습니다.');
                           context.go('/game_main_page');
                         } catch (error) {
@@ -185,6 +189,10 @@ class _LoginPageState extends State<LoginPage> {
                           await context
                               .read<FirebaseAuthProvider>()
                               .signInWithGoogle();
+                          if (!context.mounted) return;
+                          if (!await ensureTermsAgreement(context)) return;
+                          if (!context.mounted) return;
+                          if (!await handleLocalDataOnLogin(context)) return;
                           if (!context.mounted) return;
                           showSnackBar(context, '로그인이 되었습니다.');
                           context.go('/game_main_page');

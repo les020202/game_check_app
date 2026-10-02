@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../viewmodel/provider/firebase_auth_provider.dart';
-import '../show_snackbar.dart';
+import '../utils/show_snackbar.dart';
 import '/widgets/custom_button.dart';
 import '../widgets/custom_app_bar.dart';
 

@@ -8,7 +8,7 @@ import '../../models/daily_quest_item.dart';
 import '../../models/game.dart';
 import '../../models/quest_category.dart';
 import '../../models/quest_log.dart';
-
+import '../../utils/quest_period.dart';
 class GameProvider extends ChangeNotifier {
   final GameService _service;
 
@@ -139,6 +139,9 @@ class GameProvider extends ChangeNotifier {
     List<Character> characters,
     int index,
   ) {
+    if (characters.isEmpty || index < 0 || index >= characters.length) {
+      return [];
+    }
     return _characterQuests
         .where(
           (q) =>
@@ -154,6 +157,9 @@ class GameProvider extends ChangeNotifier {
     List<Character> characters,
     int index,
   ) {
+    if (characters.isEmpty || index < 0 || index >= characters.length) {
+      return [];
+    }
     return _characterQuests
         .where(
           (q) =>
@@ -169,6 +175,9 @@ class GameProvider extends ChangeNotifier {
     List<Character> characters,
     int index,
   ) {
+    if (characters.isEmpty || index < 0 || index >= characters.length) {
+      return [];
+    }
     return _characterQuests
         .where(
           (q) =>
@@ -287,5 +296,27 @@ class GameProvider extends ChangeNotifier {
       characterId: characterId,
       periodDate: periodDate,
     );
+  }
+
+  // =========================================================
+  // 전체 다시 로드 (로그인 직후, 메인 화면 진입 시 사용)
+  // =========================================================
+  Future<void> reloadAll() async {
+    await loadGames();
+    for (final game in _games) {
+      await loadCharacters(game.id);
+      await loadDailyQuests(game.id);
+
+      final todayPeriod = todayPeriodFor(game);
+      for (final daily in dailyQuests(game.id)) {
+        for (final character in characters(game.id)) {
+          await loadQuestLog(
+            daily.id,
+            characterId: character.id,
+            periodDate: todayPeriod,
+          );
+        }
+      }
+    }
   }
 }
