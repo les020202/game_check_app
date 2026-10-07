@@ -264,17 +264,27 @@ class FirestoreGameService implements GameService {
           .where('userId', isEqualTo: uid)
           .where('characterId', isEqualTo: characterId)
           .get();
-      final logs = await _fs
+      final logsByChar = await _fs
           .collection('questLogs')
           .where('userId', isEqualTo: uid)
           .where('characterId', isEqualTo: characterId)
           .get();
+      final logsByQuest = await _logRefsByQuestIds(
+        cq.docs.map((d) => d.id).toList(),
+      );
 
-      await _deleteRefs([
-        ...cq.docs.map((d) => d.reference),
-        ...logs.docs.map((d) => d.reference),
-        _fs.collection('characters').doc(characterId),
-      ]);
+      // 같은 문서가 중복되지 않도록 path 기준으로 합침 (로그가 먼저 오도록 순서 유지)
+      final refs = <String, DocumentReference>{
+        for (final r in [
+          ...logsByChar.docs.map((d) => d.reference),
+          ...logsByQuest,
+          ...cq.docs.map((d) => d.reference),
+          _fs.collection('characters').doc(characterId),
+        ])
+          r.path: r,
+      };
+
+      await _deleteRefs(refs.values.toList());
     } catch (e) {
       throw Exception('deleteCharacter error');
     }
@@ -420,8 +430,7 @@ class FirestoreGameService implements GameService {
     required List<QuestLog> logs,
   }) async {
     final writes = <(DocumentReference, Map<String, dynamic>)>[
-      for (final g in games)
-        (_fs.collection('games').doc(g.id), _gameToMap(g)),
+      for (final g in games) (_fs.collection('games').doc(g.id), _gameToMap(g)),
       for (final c in characters)
         (_fs.collection('characters').doc(c.id), _characterToMap(c)),
       for (final d in dailys)

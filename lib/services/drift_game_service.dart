@@ -139,18 +139,27 @@ class DriftGameService implements GameService {
   }
 
   @override
-  Future<void> deleteCharacter(String characterId) async {
-    await (_db.delete(
-      _db.characterQuestItems,
-    )..where((q) => q.characterId.equals(characterId))).go();
+  Future<void> deleteCharacter(String characterId) {
+    return _db.transaction(() async {
+      final cqIds =
+          (await (_db.select(
+                _db.characterQuestItems,
+              )..where((q) => q.characterId.equals(characterId))).get())
+              .map((q) => q.id)
+              .toList();
 
-    await (_db.delete(
-      _db.questLogs,
-    )..where((q) => q.characterId.equals(characterId))).go();
-
-    await (_db.delete(
-      _db.characters,
-    )..where((c) => c.id.equals(characterId))).go();
+      await (_db.delete(_db.questLogs)..where(
+            (l) =>
+                l.characterId.equals(characterId) | l.questItemId.isIn(cqIds),
+          ))
+          .go();
+      await (_db.delete(
+        _db.characterQuestItems,
+      )..where((q) => q.characterId.equals(characterId))).go();
+      await (_db.delete(
+        _db.characters,
+      )..where((c) => c.id.equals(characterId))).go();
+    });
   }
 
   //DailyQuest

@@ -97,14 +97,15 @@ class _MyPageState extends State<MyPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            Flexible(
-                              child: Stack(
-                                children: [
-                                  if (isLoggedIn)
+                            if (isLoggedIn)
+                              SizedBox(
+                                width: 104,
+                                height: 104,
+                                child: Stack(
+                                  children: [
                                     GestureDetector(
                                       onTap: _pickImage,
                                       child: Container(
-                                        width: double.infinity,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           border: Border.all(
@@ -118,8 +119,9 @@ class _MyPageState extends State<MyPage> {
                                               profileImageURL != null
                                               ? NetworkImage(profileImageURL)
                                               : const AssetImage(
-                                                  'assets/me.png',
-                                                ),
+                                                      'assets/me.png',
+                                                    )
+                                                    as ImageProvider,
                                           backgroundColor: Colors.transparent,
                                           child: _isUploading
                                               ? CircularProgressIndicator()
@@ -133,10 +135,9 @@ class _MyPageState extends State<MyPage> {
                                         ),
                                       ),
                                     ),
-                                  if (isLoggedIn)
                                     Positioned(
-                                      bottom: 5,
-                                      right: 20,
+                                      bottom: 0,
+                                      right: 0,
                                       child: Container(
                                         height: 25,
                                         width: 25,
@@ -164,17 +165,19 @@ class _MyPageState extends State<MyPage> {
                                         ),
                                       ),
                                     ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 12),
+                            SizedBox(width: 24),
                             if (isLoggedIn)
                               Expanded(
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     TextFormField(
-                                      key: ValueKey('nickname_${user?.id}_$nickName'),
+                                      key: ValueKey(
+                                        'nickname_${user?.id}_$nickName',
+                                      ),
                                       minLines: 1,
                                       maxLines: 5,
                                       initialValue: nickName,
@@ -345,13 +348,14 @@ class _MyPageState extends State<MyPage> {
                                 Icon(Icons.delete_outline),
                                 TextButton(
                                   onPressed: () async {
-                                    if(!isLoggedIn){
+                                    if (!isLoggedIn) {
                                       showSnackBar(context, '로그인 상태가 아닙니다.');
                                       return;
                                     }
-                                    if(authProvider.isGoogleLogin){
-                                      await authProvider.deleteAccountWithGoogle();
-                                      if(context.mounted){
+                                    if (authProvider.isGoogleLogin) {
+                                      await authProvider
+                                          .deleteAccountWithGoogle();
+                                      if (context.mounted) {
                                         showSnackBar(context, '탈퇴처리가 완료되었습니다.');
                                       }
                                       return;

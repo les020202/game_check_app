@@ -7,7 +7,7 @@ import '../models/app_user.dart';
 class FirebaseAuthService {
   final FirebaseAuth _auth;
   FirebaseAuthService() : _auth = FirebaseAuth.instance {
-    _auth.setLanguageCode('kr');
+    _auth.setLanguageCode('ko');
   }
 
   AppUser? _toAppUser(User? u) {
@@ -181,7 +181,7 @@ class FirebaseAuthService {
     }
   }
 
-  Future<void> reauthenticateAndDeleteAccount(String password) async {
+  Future<void> reauthenticateWithPassword(String password) async {
     String? errorMessage;
     try {
       AuthCredential credential = EmailAuthProvider.credential(
@@ -189,7 +189,6 @@ class FirebaseAuthService {
         password: password,
       );
       await _auth.currentUser?.reauthenticateWithCredential(credential);
-      await _auth.currentUser?.delete();
     } on FirebaseAuthException catch (error) {
       switch (error.code) {
         case 'user-not-found':
@@ -209,7 +208,8 @@ class FirebaseAuthService {
     }
   }
 
-  Future<void> signInWithGoogle() async { //소셜로그인(구글)
+  Future<void> signInWithGoogle() async {
+    //소셜로그인(구글)
     try {
       final googleUser = await GoogleSignIn.instance.authenticate();
       final googleAuth = googleUser.authentication;
@@ -239,19 +239,25 @@ class FirebaseAuthService {
     }
   }
 
-  Future<void> deleteAccountWithGoogle() async { //소셜계정 탈퇴(구글)
+  //소셜 계정 탈퇴를 위한 재인증
+  Future<void> reauthenticateWithGoogle() async {
     try {
       final googleUser = await GoogleSignIn.instance.authenticate();
       final googleAuth = googleUser.authentication;
-
       final credential = GoogleAuthProvider.credential(
         idToken: googleAuth.idToken,
       );
-
       await _auth.currentUser?.reauthenticateWithCredential(credential);
-      await _auth.currentUser?.delete();
     } catch (e) {
       throw Exception('회원탈퇴 중 오류가 발생했습니다.$e');
+    }
+  }
+
+  Future<void> deleteCurrentUser() async {
+    try {
+      await _auth.currentUser?.delete();
+    } catch (e) {
+      throw Exception('탈퇴과정에 문제가 있습니다.');
     }
   }
 }

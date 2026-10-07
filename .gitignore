@@ -49,9 +49,12 @@ android/app/google-services.json
 env.json
 .vscode/launch.json
 
+# Android signing secrets
 android/key.properties
+android/release_key.keystore
 android/app/*.jks
 android/app/*.keystore
+
 *.env
 .env*
 !.env.example

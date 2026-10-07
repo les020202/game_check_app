@@ -9,6 +9,7 @@ import '../../models/game.dart';
 import '../../models/quest_category.dart';
 import '../../models/quest_log.dart';
 import '../../utils/quest_period.dart';
+
 class GameProvider extends ChangeNotifier {
   final GameService _service;
 
@@ -88,11 +89,16 @@ class GameProvider extends ChangeNotifier {
     await loadCharacters(gameId);
   }
 
-  Future<void> deleteCharacterById(String characterId) async {
+  Future<void> deleteCharacterById(
+    String characterId, {
+    bool reload = true,
+  }) async {
     final gameId = _characters.firstWhere((c) => c.id == characterId).gameId;
     await _service.deleteCharacter(characterId); // 딸린 퀘스트 삭제까지 Service가 처리
-    await loadCharacters(gameId);
-    await loadCharacterQuests(gameId);
+    if (reload) {
+      await loadCharacters(gameId);
+      await loadCharacterQuests(gameId);
+    }
   }
 
   // =========================================================
@@ -197,9 +203,12 @@ class GameProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addCharacterQuest(CharacterQuestItem characterQuest) async {
+  Future<void> addCharacterQuest(
+    CharacterQuestItem characterQuest, {
+    bool reload = true,
+  }) async {
     await _service.addCharacterQuest(characterQuest);
-    await loadCharacterQuests(characterQuest.gameId);
+    if (reload) await loadCharacterQuests(characterQuest.gameId);
   }
 
   Future<void> updateCharacterQuest(
@@ -207,6 +216,7 @@ class GameProvider extends ChangeNotifier {
     required String name,
     String? memo,
     DateTime? dueDate,
+    bool reload = true,
   }) async {
     await _service.updateCharacterQuest(
       questId,
@@ -214,14 +224,21 @@ class GameProvider extends ChangeNotifier {
       memo: memo,
       dueDate: dueDate,
     );
-    final gameId = _characterQuests.firstWhere((q) => q.id == questId).gameId;
-    await loadCharacterQuests(gameId);
+    if (reload) {
+      final gameId = _characterQuests.firstWhere((q) => q.id == questId).gameId;
+      await loadCharacterQuests(gameId);
+    }
   }
 
-  Future<void> deleteCharacterQuestById(String questId) async {
-    final gameId = _characterQuests.firstWhere((q) => q.id == questId).gameId;
+  Future<void> deleteCharacterQuestById(
+    String questId, {
+    bool reload = true,
+  }) async {
+    final index = _characterQuests.indexWhere((q) => q.id == questId);
+    if (index == -1) return;
+    final gameId = _characterQuests[index].gameId;
     await _service.deleteCharacterQuestById(questId);
-    await loadCharacterQuests(gameId);
+    if (reload) await loadCharacterQuests(gameId);
   }
 
   // =========================================================

@@ -21,12 +21,16 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _passwordController = TextEditingController();
 
-  bool isAllChecked = false;
+  // [체크 여부, 라벨, 필수 여부, 약관 상세 index(없으면 null)]
   List<List<dynamic>> isCheckeds = [
-    [false, '[필수] 이용약관 동의'],
-    [false, '[필수] 개인정보 수집 및 이용 동의'],
-    [false, '[선택] 마케팅 정보 수신 동의'],
+    [false, '[필수] 만 14세 이상입니다', true, null],
+    [false, '[필수] 이용약관 동의', true, 0],
+    [false, '[필수] 개인정보 수집 및 이용 동의', true, 1],
+    [false, '[선택] 마케팅 정보 수신 동의', false, 2],
   ];
+
+  bool get isAllChecked =>
+      isCheckeds.where((e) => e[2] == true).every((e) => e[0] as bool);
 
   String? nickName;
   String? email;
@@ -186,14 +190,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             value: isAllChecked,
                             onChanged: (value) {
                               setState(() {
-                                isAllChecked = !isAllChecked;
-                                isAllChecked
-                                    ? isCheckeds[0][0] = true
-                                    : isCheckeds[0][0] = false;
-                                isAllChecked
-                                    ? isCheckeds[1][0] = true
-                                    : isCheckeds[1][0] = false;
-                                isAllChecked ? null : isCheckeds[2][0] = false;
+                                for (final e in isCheckeds) {
+                                  if (e[2] == true)
+                                    e[0] = value ?? false; // 필수만 변경
+                                }
                               });
                             },
                           ),
@@ -212,9 +212,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         color: colorScheme.onPrimary,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Column(
-                        children: [...getTermsList(isCheckeds, textTheme)],
-                      ),
+                      child: Column(children: [...getTermsList(textTheme)]),
                     ),
                     SizedBox(height: 20),
                     SizedBox(
@@ -222,7 +220,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       child: ElevatedButton(
                         onPressed: () async {
                           if (!_formKey.currentState!.validate()) return;
-                          if (!isCheckeds[0][0] || !isCheckeds[1][0]) {
+                          if (isCheckeds.any(
+                            (e) => e[2] == true && e[0] == false,
+                          )) {
                             showSnackBar(context, '필수 약관에 동의해주세요.');
                             return;
                           }
@@ -232,17 +232,19 @@ class _RegistrationPageState extends State<RegistrationPage> {
                                 .read<FirebaseAuthProvider>()
                                 .signUp(email!, password!, nickName!);
 
+                            final now = DateTime.now();
                             final agreement = UserAgreement(
                               uid: uid,
                               termsOfService: AgreementStatus(
-                                agreed: isCheckeds[0][0],
-                                agreedAt: DateTime.now(),
+                                agreed: isCheckeds[1][0],
+                                agreedAt: now,
                               ),
                               privacyPolicy: AgreementStatus(
-                                agreed: isCheckeds[1][0],
-                                agreedAt: DateTime.now(),
+                                agreed: isCheckeds[2][0],
+                                agreedAt: now,
                               ),
-                              marketingConsent: isCheckeds[2][0],
+                              marketingConsent: isCheckeds[3][0],
+                              marketingUpdatedAt: now,
                             );
                             await FirestoreSupportService(
                               uid,
@@ -292,32 +294,30 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 
-  List<Widget> getTermsList(List<dynamic> isCheckeds, TextTheme textTheme) {
-    List<Widget> termsList = [];
-    for (int i = 0; i < isCheckeds.length; i++) {
-      termsList.add(
+  List<Widget> getTermsList(TextTheme textTheme) {
+    return [
+      for (int i = 0; i < isCheckeds.length; i++)
         ListTile(
           leading: Checkbox(
             value: isCheckeds[i][0],
-            onChanged: (value) {
-              setState(() {
-                isCheckeds[i][0] = !isCheckeds[i][0];
-              });
-            },
+            onChanged: (value) =>
+                setState(() => isCheckeds[i][0] = value ?? false),
           ),
           title: Text(
             isCheckeds[i][1],
             style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w400),
           ),
-          trailing: IconButton(
-            onPressed: () {
-              context.go(''); //약관페이지로 이동부분
-            },
-            icon: Icon(Icons.arrow_forward_ios, size: 20),
-          ),
+          trailing: isCheckeds[i][3] == null
+              ? null
+              : IconButton(
+                  onPressed: () {
+                    context.push(
+                      '/my_page/terms_settings_page/terms_detail_page/${isCheckeds[i][3]}',
+                    );
+                  },
+                  icon: Icon(Icons.arrow_forward_ios, size: 20),
+                ),
         ),
-      );
-    }
-    return termsList;
+    ];
   }
 }

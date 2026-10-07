@@ -6,11 +6,12 @@ import 'package:flutter/material.dart';
 import '../../models/app_user.dart';
 import '../../services/firebase_auth_service.dart';
 import '../../services/firebase_storage_service.dart';
-
+import '../../services/user_data_service.dart';
 class FirebaseAuthProvider extends ChangeNotifier {
   final FirebaseAuthService _authService;
   final FirebaseStorageService? _storageService;
-
+  final UserDataService _userDataService = UserDataService();
+  
   AppUser? _user;
   StreamSubscription<AppUser?>? _sub;
 
@@ -51,9 +52,7 @@ class FirebaseAuthProvider extends ChangeNotifier {
     );
     final uid = _authService.currentUser?.id; // 가입 직후 즉시 읽음, 스트림 안 기다림
     if (uid == null) throw Exception('가입 후 사용자 정보를 가져오지 못했습니다.');
-    debugPrint('signUp 직후 displayName: ${_authService.currentUser?.nickname}');
     await refreshUser();
-    debugPrint('refreshUser 이후 displayName: ${_user?.nickname}');
     return uid;
   }
 
@@ -101,8 +100,10 @@ class FirebaseAuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteAccount(String password) =>
-      _authService.reauthenticateAndDeleteAccount(password);
+  Future<void> deleteAccount(String password) async {
+    await _authService.reauthenticateWithPassword(password);
+    await _wipeDataAndDeleteUser();
+  }
 
   Future<void> refreshUser() async {
     _user = await _authService.reloadUser();
@@ -110,6 +111,22 @@ class FirebaseAuthProvider extends ChangeNotifier {
   }
 
   Future<void> signInWithGoogle() => _authService.signInWithGoogle(); //소셜로그인 서비스
-  Future<void> deleteAccountWithGoogle() => 
-      _authService.deleteAccountWithGoogle(); //소셜계정 회원탈퇴 서비스
+  
+  Future<void> deleteAccountWithGoogle() async {
+    await _authService.reauthenticateWithGoogle();
+    await _wipeDataAndDeleteUser();
+  } //소셜계정 회원탈퇴 서비스
+
+  //계정 삭제시 관련 Data 지우기
+  Future<void> _wipeDataAndDeleteUser() async {
+    final uid = _authService.currentUser?.id;
+    if (uid == null) throw Exception('로그인이 필요합니다.');
+    try {
+      await _userDataService.deleteAllUserData(uid);
+    } catch (e) {
+      debugPrint('deleteAllUserData error: $e');
+      throw Exception('데이터 삭제 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
+    await _authService.deleteCurrentUser();
+  }
 }

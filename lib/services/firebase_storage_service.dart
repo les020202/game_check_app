@@ -34,4 +34,28 @@ class FirebaseStorageService {
       throw Exception('delete 실패');
     }
   }
+
+  //문의 이미지 업로드
+  Future<String> uploadInquiryImage({
+    required Uint8List bytes,
+    required String path,
+    required String uid,
+    required String inquiryId,
+  }) async {
+    try {
+      final isPng = path.toLowerCase().endsWith('.png');
+      final ref = storageRef.child(
+        'inquiries/$uid/$inquiryId.${isPng ? 'png' : 'jpg'}',
+      );
+      await ref.putData(
+        bytes,
+        SettableMetadata(contentType: isPng ? 'image/png' : 'image/jpeg'),
+      );
+      return await ref.getDownloadURL();
+    } catch (e) {
+      throw Exception('upload 실패');
+    }
+  }
+
+  
 }

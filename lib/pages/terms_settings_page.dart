@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../viewmodel/provider/firestore_support_provider.dart';
 import '/widgets/app_switch.dart';
 import '/widgets/custom_app_bar.dart';
+import '/utils/show_snackbar.dart';
 
 class TermsSettingsPage extends StatefulWidget {
   TermsSettingsPage({super.key});
@@ -15,21 +16,21 @@ class TermsSettingsPage extends StatefulWidget {
 }
 
 class _TermsSettingsPageState extends State<TermsSettingsPage> {
-  List<String> reqTerms=[];
-  List<String> reqTermsText=[];
-  List<String> reqTermsAddress=[];
+  List<String> reqTerms = [];
+  List<String> reqTermsText = [];
+  List<String> reqTermsAddress = [];
 
-  List<String> terms=[];
-  List<String> termsText=[];
-  List<String> termsAddress=[];
+  List<String> terms = [];
+  List<String> termsText = [];
+  List<String> termsAddress = [];
 
   bool? isOn;
-  
-  bool _isLoading=false;
+  DateTime? marketingUpdatedAt;
+  bool _isLoading = false;
   @override
-  void initState(){
-    super.initState();  
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData()); 
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData());
   }
 
   Future<void> _loadInitialData() async {
@@ -42,16 +43,29 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
       return;
     }
     isOn = agreement.marketingConsent;
+    marketingUpdatedAt = agreement.marketingUpdatedAt;
     reqTerms = ['서비스 이용약관', '개인정보 수집 및 이용 동의'];
-    reqTermsText = ['${DateFormat('yyyy.MM.dd').format(gp.agreement!.termsOfService.agreedAt)} 동의', '${DateFormat('yyyy.MM.dd').format(gp.agreement!.privacyPolicy.agreedAt)} 동의'];
-    reqTermsAddress= ['/my_page/terms_settings_page/terms_detail_page/${0}','/my_page/terms_settings_page/terms_detail_page/${1}'];
+    reqTermsText = [
+      '${DateFormat('yyyy.MM.dd').format(gp.agreement!.termsOfService.agreedAt)} 동의',
+      '${DateFormat('yyyy.MM.dd').format(gp.agreement!.privacyPolicy.agreedAt)} 동의',
+    ];
+    reqTermsAddress = [
+      '/my_page/terms_settings_page/terms_detail_page/${0}',
+      '/my_page/terms_settings_page/terms_detail_page/${1}',
+    ];
     terms = ['마케팅 정보 수신 동의'];
-    termsText = ['이벤트, 혜택 정보를 이메일로 받아요'];
-    termsAddress= ['/my_page/terms_settings_page/terms_detail_page/${2}'];
+    termsAddress = ['/my_page/terms_settings_page/terms_detail_page/${2}'];
     if (!mounted) return;
     setState(() {
-      _isLoading=true;
+      _isLoading = true;
     });
+  }
+
+  String _marketingText() {
+    if (isOn == true && marketingUpdatedAt != null) {
+      return '${DateFormat('yyyy.MM.dd').format(marketingUpdatedAt!)} 동의';
+    }
+    return '이벤트, 혜택 정보를 이메일로 받아요';
   }
 
   @override
@@ -59,7 +73,8 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
     TextTheme textTheme = Theme.of(context).textTheme;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
     final gp = Provider.of<FirestoreSupportProvider>(context, listen: false);
-    if(!_isLoading) WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData()); 
+    if (!_isLoading)
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData());
     return Scaffold(
       appBar: CustomAppBar(title: '이용약관 및 개인정보처리방침'),
       body: SafeArea(
@@ -94,13 +109,16 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
                   child: Column(
                     children: [
                       getRequiredTerms(
-                        textTheme, reqTerms, reqTermsText, 
-                        getAgree(textTheme), reqTermsAddress
-                      )
+                        textTheme,
+                        reqTerms,
+                        reqTermsText,
+                        getAgree(textTheme),
+                        reqTermsAddress,
+                      ),
                     ],
                   ),
                 ),
-                SizedBox(height: 24,),
+                SizedBox(height: 24),
                 Row(
                   children: [
                     Text(
@@ -127,15 +145,31 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
                   child: Column(
                     children: [
                       getRequiredTerms(
-                        textTheme, terms, termsText, 
-                        AppSwitch(value: isOn ?? false, onChanged: (value) {
-                          setState(() {
-                            isOn=value;
-                            gp.setMarketingConsent(value);
-                          });
-                        }, scale: 0.8),
-                        termsAddress
-                      )
+                        textTheme,
+                        terms,
+                        [_marketingText()],
+                        AppSwitch(
+                          value: isOn ?? false,
+                          onChanged: (value) async {
+                            final prev = isOn;
+                            setState(() => isOn = value);
+                            try {
+                              await gp.setMarketingConsent(value);
+                              if (!mounted) return;
+                              setState(
+                                () => marketingUpdatedAt =
+                                    gp.agreement?.marketingUpdatedAt,
+                              );
+                            } catch (e) {
+                              if (!mounted) return;
+                              setState(() => isOn = prev); // 실패하면 스위치를 원래대로
+                              showSnackBar(context, '변경하지 못했어요. 다시 시도해주세요.');
+                            }
+                          },
+                          scale: 0.8,
+                        ),
+                        termsAddress,
+                      ),
                     ],
                   ),
                 ),
@@ -149,24 +183,19 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
 
   Container getAgree(TextTheme textTheme) {
     return Container(
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.only(
-                  left: 7,
-                  right: 7,
-                  top: 2,
-                  bottom: 2,
-                ),
-                child: Text(
-                  '동의함',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.green,
-                  ),
-                ),
-              );
+      decoration: BoxDecoration(
+        color: Colors.green.shade50,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.only(left: 7, right: 7, top: 2, bottom: 2),
+      child: Text(
+        '동의함',
+        style: textTheme.bodyLarge?.copyWith(
+          fontWeight: FontWeight.w500,
+          color: Colors.green,
+        ),
+      ),
+    );
   }
 
   Widget getRequiredTerms(
@@ -174,47 +203,47 @@ class _TermsSettingsPageState extends State<TermsSettingsPage> {
     List<String> terms,
     List<String> termTexts,
     Widget widget,
-    List<String> termsAddress
+    List<String> termsAddress,
   ) {
-      return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: terms.length,
-          itemBuilder: (context, index) {
-            return Row(
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: terms.length,
+      itemBuilder: (context, index) {
+        return Row(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${terms[index]}',
-                      style: textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      '${termTexts[index]}',
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w400,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
+                Text(
+                  '${terms[index]}',
+                  style: textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                Spacer(),
-                widget,
-                IconButton(
-                  onPressed: () {
-                    context.go(termsAddress[index]);
-                  },
-                  icon: Icon(Icons.arrow_forward_ios),
+                Text(
+                  '${termTexts[index]}',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey,
+                  ),
                 ),
               ],
-            );
-          },
-          separatorBuilder: (context, index) {
-            return const Divider();
-          },
-        ); 
+            ),
+            Spacer(),
+            widget,
+            IconButton(
+              onPressed: () {
+                context.go(termsAddress[index]);
+              },
+              icon: Icon(Icons.arrow_forward_ios),
+            ),
+          ],
+        );
+      },
+      separatorBuilder: (context, index) {
+        return const Divider();
+      },
+    );
   }
 }

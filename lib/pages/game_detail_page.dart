@@ -108,6 +108,10 @@ class _GameDetailPageState extends State<GameDetailPage> {
     Game game,
     List<Character> characters,
   ) {
+    if (characters.isEmpty) return;
+    if (characterSelectedIndex >= characters.length) {
+      characterSelectedIndex = characters.length - 1;
+    }
     List<DailyQuestItem> dailyQuests = gp.dailyQuests(game.id);
     List<CharacterQuestItem> weeklyQuests = gp.weeklyQuests(
       game.id,
@@ -190,8 +194,8 @@ class _GameDetailPageState extends State<GameDetailPage> {
   }
 
   bool _isSameDay(DateTime a, DateTime b) =>
-    a.year == b.year && a.month == b.month && a.day == b.day;
-  
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -222,7 +226,8 @@ class _GameDetailPageState extends State<GameDetailPage> {
       ),
       body: Consumer<GameProvider>(
         builder: (context, gameProvider, child) {
-          if (gameProvider.games.length <= widget.gamesIndex) { // 게임 목록이 아직 로드되지 않았거나, 로그인 전환으로 인덱스가 어긋난 상태
+          if (gameProvider.games.length <= widget.gamesIndex) {
+            // 게임 목록이 아직 로드되지 않았거나, 로그인 전환으로 인덱스가 어긋난 상태
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (context.mounted) context.go('/game_main_page');
             });
@@ -231,6 +236,15 @@ class _GameDetailPageState extends State<GameDetailPage> {
           Game game = gameProvider.games[widget.gamesIndex];
           List<DailyQuestItem> dailyQuests = gameProvider.dailyQuests(game.id);
           List<Character> characters = gameProvider.characters(game.id);
+          if (characters.isNotEmpty && // 캐릭터가 줄어서 선택 인덱스가 범위를 벗어난 경우 보정
+              characterSelectedIndex >= characters.length) {
+            characterSelectedIndex = characters.length - 1;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              _refreshCheckedMaps(gameProvider, game, characters);
+              setState(() {});
+            });
+          }
           List<CharacterQuestItem> weeklyQuests = gameProvider.weeklyQuests(
             game.id,
             characters,
@@ -420,7 +434,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         ),
                       ),
                       SizedBox(height: 12),
-                      if (dailyQuests.isNotEmpty)
+                      if (dailyQuests.isNotEmpty && characters.isNotEmpty)
                         getCheckList(
                           textTheme,
                           colorScheme,
@@ -681,7 +695,9 @@ class _GameDetailPageState extends State<GameDetailPage> {
                         quest.runtimeType == DailyQuestItem
                             ? null
                             : quest.category,
-                        dueDate: quest.runtimeType != DailyQuestItem && quest.category == QuestCategory.goal
+                        dueDate:
+                            quest.runtimeType != DailyQuestItem &&
+                                quest.category == QuestCategory.goal
                             ? quest.dueDate
                             : null,
                       ),

@@ -16,8 +16,8 @@ ID 생성 : uuid (v4)
 로컬 설정 : shared_preferences(온보딩 페이지)
 갤러리 기능 : image_picker
 사진 저장 : Firebase Storage
-이메일 발송 : 
 
+문의 이메일 발송 : (예정)
 알림설정 : (예정)
 
 
@@ -51,7 +51,7 @@ Firebase 프로젝트 연동 필요(google-services.json 등 설정 파일 별�
 pages: 순수 View. 화면 단위 위젯만 담당
 viewmodel/provider: 화면별 상태와 로직. services를 조합해 화면에 필요한 상태를 만듦
 widgets: 여러 페이지에서 공통으로 쓰이는 UI 컴포넌트
-services: 데이터 CRUD(로그인 전 Drift ↔ 로그인 후 Firestore 전환 포함)와 Firebase Auth, 이메일 발송, 로그인 마이그레이션, 알림(예정)까지 전부 이 폴더에서 처리
+services: 데이터 CRUD(로그인 전 Drift ↔ 로그인 후 Firestore 전환 포함)와 Firebase Auth, 로그인 마이그레이션, 문의 이메일 발송(예정), 알림(예정)까지 전부 이 폴더에서 처리
 local: Drift 스키마 전체 — 테이블 정의(tables/)와 커스텀 컬럼 변환기(converters/)로 구성
 
 lib/
@@ -60,7 +60,7 @@ lib/
 ├── viewmodel/
 │   └── provider/   # 화면별 로직 (Provider/ChangeNotifier), services를 조합해 상태를 만듦
 ├── widgets/    # 여러 화면에서 재사용하는 공용 위젯
-├── services/   # 데이터 CRUD(Drift/Firestore) + 외부 동작 트리거 (Auth, 이메일 발송, 로그인 마이그레이션, 알림(예정))
+├── services/   # 데이터 CRUD(Drift/Firestore) + 외부 동작 트리거 (Auth, 로그인 마이그레이션, 문의 이메일 발송(예정), 알림(예정))
 └── local/      # Drift 로컬 DB
     ├── tables/       # Drift 테이블 정의
     └── converters/   # 커스텀 타입 컨버터 (예: List<String> ↔ JSON)

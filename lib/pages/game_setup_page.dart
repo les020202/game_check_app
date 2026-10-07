@@ -380,7 +380,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                               context,
                               currentType,
                               textTheme,
-                              colorScheme
+                              colorScheme,
                             );
                             if (template != null) _applyTemplate(template);
                           },
@@ -671,7 +671,11 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           final removedCharacterIds = originalCharacterIds
                               .difference(currentCharacterIds);
                           for (final id in removedCharacterIds) {
-                            await gp.deleteCharacterById(id);
+                            await gp.deleteCharacterById(id, reload: false);
+                          }
+                          if (removedCharacterIds.isNotEmpty) {
+                            await gp.loadCharacters(gameId!);
+                            await gp.loadCharacterQuests(gameId!);
                           }
                         }
                         for (int i = 0; i < newCharacterIds.length; i++) {
@@ -720,6 +724,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                                           item.dueDay!,
                                         )
                                       : null,
+                                  reload: false,
                                 );
                               } else {
                                 await gp.addCharacterQuest(
@@ -740,6 +745,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                                           )
                                         : null,
                                   ),
+                                  reload: false,
                                 );
                               }
                             }
@@ -756,11 +762,18 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         if (isEditing) {
                           final removedQuestIds = originalCharacterQuestIds
                               .difference(allCurrentQuestIds);
-                          for (final id in removedQuestIds) {
-                            await gp.deleteCharacterQuestById(id);
+                          // 캐릭터 삭제로 이미 정리된 퀘스트는 제외
+                          final existingQuestIds = gp
+                              .characterQuests(gameId!)
+                              .map((q) => q.id)
+                              .toSet();
+                          for (final id in removedQuestIds.where(
+                            existingQuestIds.contains,
+                          )) {
+                            await gp.deleteCharacterQuestById(id,reload: false,);
                           }
                         }
-
+                        await gp.loadCharacterQuests(gameId!);
                         if (context.mounted) context.go('/game_main_page');
                       },
                       borderSide: BorderSide(color: colorScheme.primary),

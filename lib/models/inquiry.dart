@@ -8,6 +8,7 @@ class Inquiry {
   final String content;
   final String tag;
   final InquiryStatus status;
+  final String? imageUrl;
   final DateTime createdAt;
 
   Inquiry({
@@ -18,6 +19,7 @@ class Inquiry {
     required this.content,
     required this.tag,
     required this.status,
+    this.imageUrl,
     required this.createdAt,
   });
 }
