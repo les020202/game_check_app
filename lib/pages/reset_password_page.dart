@@ -126,27 +126,9 @@ class ResetPasswordPage extends StatelessWidget {
                           Column(
                             children: [
                               Text(
-                                '메일이 도착하지 않았다면\n스팸함을 확인하시거나',
+                                '메일이 도착하지 않았다면\n스팸함을 한번 확인해주세요.',
                                 style: textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                onPressed: () {
-                                  context.go(''); // 고객센터 이동부분
-                                },
-                                child: Text(
-                                  '고객센터로 문의해주세요.',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w400,
-                                    color: colorScheme.primary,
-                                  ),
                                 ),
                               ),
                             ],

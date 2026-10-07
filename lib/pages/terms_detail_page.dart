@@ -115,9 +115,9 @@ class _TermsDetailPageState extends State<TermsDetailPage> {
   ];
   List<List<String>> termsDetails = [];
   List<String> termsDays = [
-    '시행일 : 2026.10.01 버전 1.0',
-    '시행일 : 2026.10.01 버전 1.0',
-    '시행일 : 2026.10.01 버전 1.0',
+    '시행일 : 2026.10.07 버전 1.0',
+    '시행일 : 2026.10.07 버전 1.0',
+    '시행일 : 2026.10.07 버전 1.0',
   ];
   final List<String> termsTitles = [
     '서비스 이용약관',

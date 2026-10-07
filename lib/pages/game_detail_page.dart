@@ -302,7 +302,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '캘린더',
+                        '캘린더 (클릭 시 주간 현황 페이지로 이동)',
                         style: textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -339,7 +339,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                             );
                           },
                         ),
-                      ),
+                      ),          
                       SizedBox(height: 12),
                       getQuestList(
                         textTheme,
