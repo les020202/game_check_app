@@ -9,8 +9,8 @@ class TermsDetailPage extends StatefulWidget {
   State<TermsDetailPage> createState() => _TermsDetailPageState();
 }
 
-String devName = '개발자 실명 교체';
-String supportEmail = '문의 이메일 교체';
+String devName = '이은성';
+String supportEmail = 'eunseong020310@gmail.com';
 
 class _TermsDetailPageState extends State<TermsDetailPage> {
   // 1) 서비스 이용약관

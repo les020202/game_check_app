@@ -123,6 +123,7 @@ class MyApp extends StatelessWidget {
             surfaceDim: Color(0xff979797),
           ),
         ),
+        themeMode: ThemeMode.light,
         debugShowCheckedModeBanner: false,
         title: 'game check app',
       ),

@@ -66,6 +66,16 @@ class _GameSetupPageState extends State<GameSetupPage> {
   Set<String> originalCharacterIds = {};
   Set<String> originalCharacterQuestIds = {};
 
+  FixedExtentScrollController _hourController = FixedExtentScrollController();
+  FixedExtentScrollController _minuteController = FixedExtentScrollController();
+
+  @override
+  void dispose() {
+    _hourController.dispose();
+    _minuteController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -105,6 +115,14 @@ class _GameSetupPageState extends State<GameSetupPage> {
         : [false, true];
     newGameResetHour = game.gameResetHour;
     newGameResetMinute = game.gameResetMinute;
+    _hourController.dispose();
+    _minuteController.dispose();
+    _hourController = FixedExtentScrollController(
+      initialItem: game.gameResetHour,
+    );
+    _minuteController = FixedExtentScrollController(
+      initialItem: game.gameResetMinute,
+    );
     weekSelectedIndex = game.weeklyResetWeekday.value;
 
     final allDailyQuests = gp.dailyQuests(game.id);
@@ -219,6 +237,10 @@ class _GameSetupPageState extends State<GameSetupPage> {
           template.characterTemplate.monthlyItems.isEmpty &&
           template.characterTemplate.goalItems.isEmpty;
     });
+    if (_hourController.hasClients) {
+      _hourController.jumpToItem(template.gameResetHour);
+      _minuteController.jumpToItem(template.gameResetMinute);
+    }
   }
 
   @override
@@ -288,10 +310,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           child: GestureDetector(
                             onTap: () {
                               setState(() {
-                                if (isTypeChecked[1] == true) {
-                                  isTypeChecked[1] = false;
-                                }
-                                isTypeChecked[0] = !isTypeChecked[0];
+                                isTypeChecked = [true, false];
                               });
                             },
                             child: Container(
@@ -327,10 +346,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           child: GestureDetector(
                             onTap: () {
                               setState(() {
-                                if (isTypeChecked[0] == true) {
-                                  isTypeChecked[0] = false;
-                                }
-                                isTypeChecked[1] = !isTypeChecked[1];
+                                isTypeChecked = [false, true];
                               });
                             },
                             child: Container(
@@ -405,6 +421,16 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+                    if (isEditing)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2, bottom: 8),
+                        child: Text(
+                          '설정을 바꾸면 오늘/이번 주 체크가 풀려 보일 수 있어요.',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ),
                     Text(
                       '초기화 시간',
                       style: textTheme.bodyMedium?.copyWith(
@@ -422,6 +448,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         children: [
                           Expanded(
                             child: CupertinoPicker(
+                              scrollController: _hourController,
                               itemExtent: 32,
                               onSelectedItemChanged: (int index) {
                                 setState(() {
@@ -440,6 +467,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           Text(':', style: TextStyle(fontSize: 24)),
                           Expanded(
                             child: CupertinoPicker(
+                              scrollController: _minuteController,
                               itemExtent: 32,
                               onSelectedItemChanged: (int index) {
                                 setState(() {
@@ -770,7 +798,10 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           for (final id in removedQuestIds.where(
                             existingQuestIds.contains,
                           )) {
-                            await gp.deleteCharacterQuestById(id,reload: false,);
+                            await gp.deleteCharacterQuestById(
+                              id,
+                              reload: false,
+                            );
                           }
                         }
                         await gp.loadCharacterQuests(gameId!);

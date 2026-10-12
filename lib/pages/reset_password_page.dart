@@ -126,7 +126,7 @@ class ResetPasswordPage extends StatelessWidget {
                           Column(
                             children: [
                               Text(
-                                '메일이 도착하지 않았다면\n스팸함을 한번 확인해주세요.',
+                                '메일이 도착하지 않았다면\n스팸함을 한번 확인하시거나\n잘못된 이메일을 입력하셨는지 확인해주세요.',
                                 style: textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w400,
                                 ),

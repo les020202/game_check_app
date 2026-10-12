@@ -71,8 +71,12 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
 
     // 주간 퀘스트: 캐릭터별 항목, periodDate = weekStart 하나로 통일
     for (int ci = 0; ci < _characters.length; ci++) {
-      final List<CharacterQuestItem> weeklyQuests = gp.weeklyQuests(_game.id, _characters, ci);
-      for (final q in weeklyQuests) { 
+      final List<CharacterQuestItem> weeklyQuests = gp.weeklyQuests(
+        _game.id,
+        _characters,
+        ci,
+      );
+      for (final q in weeklyQuests) {
         await gp.loadQuestLog(q.id, periodDate: weekStart);
       }
     }
@@ -104,7 +108,11 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
       for (final character in _characters) {
         int checked = 0;
         for (final item in _dailyQuests) {
-          final log = gp.questLogs(item.id, characterId: character.id, periodDate: date);
+          final log = gp.questLogs(
+            item.id,
+            characterId: character.id,
+            periodDate: date,
+          );
           if (log?.isCompleted == true) checked++;
         }
         if (checked == _dailyQuests.length) completeCharCount++;
@@ -134,7 +142,11 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
         }
         int checked = 0;
         for (final item in _dailyQuests) {
-          final log = gp.questLogs(item.id, characterId: character.id, periodDate: date);
+          final log = gp.questLogs(
+            item.id,
+            characterId: character.id,
+            periodDate: date,
+          );
           if (log?.isCompleted == true) checked++;
         }
         if (checked == _dailyQuests.length) {
@@ -166,8 +178,11 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
     TextTheme textTheme = Theme.of(context).textTheme;
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    final endHour = _game.gameResetHour == 0 ? 23 : _game.gameResetHour - 1;
-    final endMinute = _game.gameResetMinute == 0 ? 59 : _game.gameResetMinute - 1;
+    final resetTotal = _game.gameResetHour * 60 + _game.gameResetMinute;
+    final endTotal = (resetTotal + 1440 - 1) % 1440; // 1분 전
+    final endHour = endTotal ~/ 60;
+    final endMinute = endTotal % 60;
+    String two(int n) => n.toString().padLeft(2, '0');
 
     return Scaffold(
       appBar: CustomAppBar(title: '주간 현황'),
@@ -193,17 +208,15 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                             Text(
                               '${weekDates.first.month}월 ${weekDates.first.day}일 ~ '
                               '${weekDates.last.month}월 ${weekDates.last.day}일',
-                              style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                              style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                            // const Spacer(),
-                            // IconButton(onPressed: () {}, icon: const Icon(Icons.arrow_back_ios_new)),
-                            // IconButton(onPressed: () {}, icon: const Icon(Icons.arrow_forward_ios)),
                           ],
                         ),
                         Text(
-                          '전체 일일퀘스트 ${_game.gameResetHour.toString().padLeft(2, '0')}:'
-                          '${_game.gameResetMinute.toString().padLeft(2, '0')} ~ '
-                          '$endHour:$endMinute',
+                          '전체 일일퀘스트 ${two(_game.gameResetHour)}:${two(_game.gameResetMinute)} ~ '
+                          '${two(endHour)}:${two(endMinute)}',
                         ),
                         const SizedBox(height: 12),
                         Row(
@@ -212,7 +225,9 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                             7,
                             (i) => WeekDayCell(
                               date: weekDates[i],
-                              status: overallStatusMap[weekDates[i]] ?? DayQuestStatus.upcoming,
+                              status:
+                                  overallStatusMap[weekDates[i]] ??
+                                  DayQuestStatus.upcoming,
                             ),
                           ),
                         ),
@@ -233,7 +248,12 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('일일 퀘스트', style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
+                        Text(
+                          '일일 퀘스트',
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         ListView.builder(
                           shrinkWrap: true,
@@ -241,7 +261,8 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                           itemCount: _characters.length,
                           itemBuilder: (context, index) {
                             final character = _characters[index];
-                            final statuses = characterDailyStatusMap[character.id] ?? [];
+                            final statuses =
+                                characterDailyStatusMap[character.id] ?? [];
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: Row(
@@ -250,14 +271,18 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                                     width: 40,
                                     child: Text(
                                       character.name,
-                                      style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                   ),
                                   for (int i = 0; i < 7; i++)
                                     Expanded(
                                       child: Center(
                                         child: StatusIndicator(
-                                          status: i < statuses.length ? statuses[i] : DayQuestStatus.upcoming,
+                                          status: i < statuses.length
+                                              ? statuses[i]
+                                              : DayQuestStatus.upcoming,
                                         ),
                                       ),
                                     ),
@@ -283,7 +308,12 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('주간 퀘스트', style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
+                        Text(
+                          '주간 퀘스트',
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         ListView.builder(
                           shrinkWrap: true,
@@ -291,17 +321,28 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
                           itemCount: _characters.length,
                           itemBuilder: (context, index) {
                             final character = _characters[index];
-                            final completed = weeklyCompletedByCharacter[character.id] ?? 0;
-                            final total = weeklyTotalByCharacter[character.id] ?? 0;
+                            final completed =
+                                weeklyCompletedByCharacter[character.id] ?? 0;
+                            final total =
+                                weeklyTotalByCharacter[character.id] ?? 0;
                             return Column(
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(character.name,
-                                        style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
-                                    Text('$completed/$total 완료',
-                                        style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+                                    Text(
+                                      character.name,
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    Text(
+                                      '$completed/$total 완료',
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 6),
@@ -334,29 +375,47 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         Container(
-          width: 15, height: 15,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.blue,
-              border: Border.all(color: Colors.blue, width: 1)),
+          width: 15,
+          height: 15,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.blue,
+            border: Border.all(color: Colors.blue, width: 1),
+          ),
         ),
         const Text('전체 완료'),
         Container(
-          width: 15, height: 15,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.grey.shade300,
-              border: Border.all(color: Colors.blue, width: 1)),
+          width: 15,
+          height: 15,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.grey.shade300,
+            border: Border.all(color: Colors.blue, width: 1),
+          ),
         ),
         const Text('일부 완료'),
         Container(
-          width: 15, height: 15,
-          decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.grey),
+          width: 15,
+          height: 15,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.grey,
+          ),
         ),
         const Text('미완료'),
         DottedBorder(
           options: const CircularDottedBorderOptions(
-            color: Colors.grey, strokeWidth: 1, dashPattern: [3, 2],
+            color: Colors.grey,
+            strokeWidth: 1,
+            dashPattern: [3, 2],
           ),
           child: Container(
-            width: 10, height: 10,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: colorScheme.onPrimary),
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: colorScheme.onPrimary,
+            ),
           ),
         ),
         const Text('예정'),

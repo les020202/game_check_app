@@ -260,17 +260,21 @@ class _GameDetailPageState extends State<GameDetailPage> {
             characters,
             characterSelectedIndex,
           );
+          final resetTotal = game.gameResetHour * 60 + game.gameResetMinute;
+          final endTotal = (resetTotal + 1440 - 1) % 1440; // 1분 전
+          final endHour = endTotal ~/ 60;
+          final endMinute = endTotal % 60;
+
           final prevWeekdayValue = game.weeklyResetWeekday.value == 1
               ? 7
               : game.weeklyResetWeekday.value - 1;
-          final prevWeekday = Weekday.fromValue(prevWeekdayValue);
-          final endHour = game.gameResetHour == 0 ? 23 : game.gameResetHour - 1;
-          final endMinute = game.gameResetMinute == 0
-              ? 59
-              : game.gameResetMinute - 1;
+          // 게임 기준 한 주는 시작 요일의 전날에 끝난다 (월 시작 → 일 종료)
+          final endWeekday = Weekday.fromValue(prevWeekdayValue);
+
+          String two(int n) => n.toString().padLeft(2, '0');
           final weeklyResetText =
-              '${game.weeklyResetWeekday.label} ${game.gameResetHour.toString().padLeft(2, '0')}:${game.gameResetMinute.toString().padLeft(2, '0')} ~ '
-              '${prevWeekday.label} $endHour:$endMinute';
+              '${game.weeklyResetWeekday.label} ${two(game.gameResetHour)}:${two(game.gameResetMinute)} ~ '
+              '${endWeekday.label} ${two(endHour)}:${two(endMinute)}';
           Map<String, DayQuestStatus> questStatus = {};
           final todayPeriod = _calcPeriodDate(null);
           for (var character in characters) {
@@ -339,7 +343,7 @@ class _GameDetailPageState extends State<GameDetailPage> {
                             );
                           },
                         ),
-                      ),          
+                      ),
                       SizedBox(height: 12),
                       getQuestList(
                         textTheme,
