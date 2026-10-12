@@ -26,7 +26,7 @@ class _FaqPageState extends State<FaqPage> {
     FaqItem(
       tag: '게임설정',
       question: '게임 템플릿은 어떻게 불러오나요?',
-      answer: '게임 설정 페이지에서 게임 이름 이후 해당 게임의 프리셋이 있으면 적용시킬건지 응답 이후 적용 가능합니다.',
+      answer: '게임 설정 페이지에서 템플릿 보기를 선택하여 선택한 게임 유형의 프리셋을 하나 선택하여 적용할 수 있습니다.',
     ),
     FaqItem(
       tag: '게임설정',

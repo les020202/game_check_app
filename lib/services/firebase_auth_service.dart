@@ -10,17 +10,34 @@ class FirebaseAuthService {
     _auth.setLanguageCode('ko');
   }
 
-  AppUser? _toAppUser(User? u) {
-    if (u == null) return null;
-    return AppUser(
-      id: u.uid,
-      nickname: u.displayName ?? '',
-      email: u.email ?? '',
-      profileImageUrl: u.photoURL,
-      emailVerified: u.emailVerified,
-      createdAt: u.metadata.creationTime,
-    );
+  String? _resolvePhotoUrl(User u) {
+  final top = u.photoURL;
+
+  // 직접 등록한 이미지(내 Storage URL)면 그대로 사용
+  if (top != null && top.contains('firebasestorage.googleapis.com')) {
+    return top;
   }
+
+  // 아니면 구글 제공자 정보의 최신 사진 사용
+  for (final p in u.providerData) {
+    if (p.providerId == 'google.com' && p.photoURL != null) {
+      return p.photoURL;
+    }
+  }
+  return top; // 이메일 가입자 등: 없으면 null → 앱 기본 이미지
+}
+
+AppUser? _toAppUser(User? u) {
+  if (u == null) return null;
+  return AppUser(
+    id: u.uid,
+    nickname: u.displayName ?? '',
+    email: u.email ?? '',
+    profileImageUrl: _resolvePhotoUrl(u),
+    emailVerified: u.emailVerified,
+    createdAt: u.metadata.creationTime,
+  );
+}
 
   AppUser? get currentUser => _toAppUser(_auth.currentUser);
 
