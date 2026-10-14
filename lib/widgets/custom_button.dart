@@ -21,17 +21,18 @@ class CustomButton extends StatelessWidget {
       padding: const EdgeInsets.all(5.0),
       child: SizedBox(
         width: double.infinity,
+        height: 52,
         child: ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
             elevation: 0,
             backgroundColor: backgroundColors,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
             side: borderSide,
           ),
-          child: Text(customText,style:fontStyle)
+          child: Text(customText, style: fontStyle),
         ),
       ),
     );

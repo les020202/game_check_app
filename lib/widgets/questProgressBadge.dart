@@ -2,63 +2,70 @@ import 'package:flutter/material.dart';
 
 import '../models/character.dart';
 import '../models/day_quest_status.dart';
+import '../theme/app_colors.dart';
 
 class QuestProgressBadge extends StatelessWidget {
-  QuestProgressBadge({
+  const QuestProgressBadge({
     super.key,
-    required this.textTheme,
-    required this.colorScheme,
+    this.textTheme, // 기존 호출 호환용 (사용 안 함)
+    this.colorScheme, // 기존 호출 호환용 (사용 안 함)
     this.questStatus,
     this.characters,
     this.completedCount,
     this.allCount,
   });
 
-  final TextTheme textTheme;
-  final ColorScheme colorScheme;
-  Map<String, DayQuestStatus>? questStatus;
-  List<Character>? characters;
-  int? completedCount;
-  int? allCount;
+  final TextTheme? textTheme;
+  final ColorScheme? colorScheme;
+  final Map<String, DayQuestStatus>? questStatus;
+  final List<Character>? characters;
+  final int? completedCount;
+  final int? allCount;
 
   @override
   Widget build(BuildContext context) {
+    var done = completedCount;
+    var total = allCount;
     if (questStatus != null && questStatus!.isNotEmpty) {
-      completedCount = questStatus!.values
-          .where((status) => status == DayQuestStatus.complete)
+      done = questStatus!.values
+          .where((s) => s == DayQuestStatus.complete)
           .length;
-      allCount = questStatus!.length;
+      total = questStatus!.length;
     }
 
     final String label;
-    final Color color;
-    final Color textColor;
-    if (allCount == 0 || allCount==null) {
+    final Color fg;
+    final Color bg;
+    if (total == null || total == 0) {
       label = '퀘스트 없음';
-      color = Colors.grey.shade100;
-      textColor=Colors.grey;
-    } else if (completedCount == allCount) {
-      label = allCount==1 ? '완료':'$completedCount/$allCount 완료';
-      color = Colors.blue.shade100;
-      textColor = colorScheme.primary;
-    } else if (completedCount == 0) {
+      fg = AppColors.none;
+      bg = AppColors.noneBg;
+    } else if (done == total) {
+      label = total == 1 ? '완료' : '$done/$total 완료';
+      fg = AppColors.complete;
+      bg = AppColors.completeBg;
+    } else if ((done ?? 0) == 0) {
       label = '미완료';
-      color = Colors.red.shade100;
-      textColor = Colors.red;
+      fg = AppColors.incomplete;
+      bg = AppColors.incompleteBg;
     } else {
-      label = '$completedCount/$allCount 완료';
-      color = Colors.orange.shade100;
-      textColor = Colors.orange;
+      label = '$done/$total 완료';
+      fg = AppColors.partial;
+      bg = AppColors.partialBg;
     }
+
     return Container(
-      padding: EdgeInsets.all(3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(7),
-        color: color
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         label,
-        style: textTheme.bodyMedium?.copyWith(color: textColor),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

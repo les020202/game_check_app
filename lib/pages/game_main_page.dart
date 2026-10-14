@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../theme/app_colors.dart';
 import '../viewmodel/provider/game_provider.dart';
 import '../widgets/custom_dotted_button.dart';
 import '../widgets/game_list_tile.dart';
+
 class GameMainPage extends StatefulWidget {
   const GameMainPage({super.key});
 
@@ -20,9 +22,9 @@ class _GameMainPageState extends State<GameMainPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final gp = Provider.of<GameProvider>(context); // 인스턴스 교체를 감지
-    if (identical(_lastGp, gp)) return; // 같은 인스턴스면 무시
+    if (identical(_lastGp, gp)) return;
     _lastGp = gp;
-    _isLoading = true; // setState 없이 대입 (곧 build가 이어짐)
+    _isLoading = true;
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadAll(gp));
   }
 
@@ -32,15 +34,61 @@ class _GameMainPageState extends State<GameMainPage> {
     } catch (e) {
       debugPrint('loadAll error: $e');
     }
-    // 그 사이 Provider가 교체됐다면 새 인스턴스의 로딩이 처리하니 무시
     if (mounted && identical(_lastGp, gp)) {
       setState(() => _isLoading = false);
     }
   }
 
+  void _showGuide() {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '퀘스트 완료 표시 기준',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 16),
+              _legendRow(AppColors.complete, '완료', '모든 퀘스트 완료'),
+              _legendRow(AppColors.partial, '부분 완료', '완료 캐릭터 수 / 전체 캐릭터 수'),
+              _legendRow(AppColors.incomplete, '미완료', '모든 퀘스트 미완료'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _legendRow(Color color, String label, String desc) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 10),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(width: 10),
+          Expanded(child: Text(desc)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    TextTheme textTheme = Theme.of(context).textTheme;
+    final textTheme = Theme.of(context).textTheme;
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -50,15 +98,21 @@ class _GameMainPageState extends State<GameMainPage> {
           '내 게임',
           style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
-        // actions: [ //알림설정 이동 부분(비활성화)
-        //   IconButton(
-        //     onPressed: () {
-        //       context.go('/my_page/notification_settings_page');
-        //     },
-        //     icon: Icon(Icons.notifications_outlined, size: 30),
-        //   ),
-        // ],
-        // actionsPadding: EdgeInsets.only(right: 20),
+        actions: [
+          TextButton.icon(
+            onPressed: _showGuide,
+            icon: const Icon(Icons.info_outline, size: 18),
+            label: const Text('표시 기준'),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.outline,
+              textStyle: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+        actionsPadding: const EdgeInsets.only(right: 8),
       ),
       body: SafeArea(
         child: Column(
@@ -68,7 +122,7 @@ class _GameMainPageState extends State<GameMainPage> {
                 behavior: ScrollConfiguration.of(
                   context,
                 ).copyWith(overscroll: false),
-                child: GameListTile(),
+                child: const GameListTile(),
               ),
             ),
             CustomDottedButton(
@@ -76,41 +130,6 @@ class _GameMainPageState extends State<GameMainPage> {
               onPressed: () {
                 context.go('/game_main_page/game_setup_page');
               },
-            ),
-            Container(
-              padding: EdgeInsets.all(10),
-              margin: EdgeInsets.all(10),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                color: Colors.grey.shade300,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.error_outline),
-                      Text(
-                        ' 퀘스트 완료 표시 기준 안내',
-                        style: textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    '완료(파랑) : 모든 퀘스트 완료\n'
-                    '부분 완료(주황) : 완료 캐릭터 수 / 전체 캐릭터 수 완료\n'
-                    '미완료(빨강) : 모든 퀘스트 미완료',
-                    style: textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ],
         ),

@@ -2,57 +2,55 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
 import '../models/day_quest_status.dart';
+import '../theme/app_colors.dart';
 
 class StatusIndicator extends StatelessWidget {
-  StatusIndicator({
-    super.key,
-    required this.status,
-  });
+  const StatusIndicator({super.key, required this.status, this.size = 24});
+
   final DayQuestStatus status;
+  final double size;
+
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
-    if (status == DayQuestStatus.upcoming) {
-      return DottedBorder(
-        options: CircularDottedBorderOptions(
-          color: Colors.grey,
-          strokeWidth: 1,
-          dashPattern: const [3, 2],
-        ),
-        child: Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: colorScheme.onPrimary,
-          ),
-        ),
-      );
-    }
+    final primary = Theme.of(context).colorScheme.primary;
 
-    return Container(
-      width: 25,
-      height: 25,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: _backgroundColor(status,colorScheme),
-        border: status == DayQuestStatus.partial
-            ? Border.all(color: Colors.blue, width: 1)
-            : null,
-      ),
-    );
-  }
-
-  Color _backgroundColor(DayQuestStatus status,ColorScheme colorScheme) {
     switch (status) {
-      case DayQuestStatus.complete:
-        return Colors.blue;
-      case DayQuestStatus.partial:
-        return Colors.grey.shade300;
-      case DayQuestStatus.incomplete:
-        return Colors.grey;
       case DayQuestStatus.upcoming:
-        return colorScheme.onPrimary;
+        return DottedBorder(
+          options: CircularDottedBorderOptions(
+            color: AppColors.none,
+            strokeWidth: 1,
+            dashPattern: const [3, 2],
+            padding: EdgeInsets.zero,
+          ),
+          child: SizedBox(width: size, height: size),
+        );
+      case DayQuestStatus.complete:
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(color: primary, shape: BoxShape.circle),
+          child: Icon(Icons.check, size: size * 0.65, color: Colors.white),
+        );
+      case DayQuestStatus.partial:
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: AppColors.completeBg,
+            shape: BoxShape.circle,
+            border: Border.all(color: primary, width: 1.5),
+          ),
+        );
+      case DayQuestStatus.incomplete:
+        return Container(
+          width: size,
+          height: size,
+          decoration: const BoxDecoration(
+            color: Color(0xffD5D9E0),
+            shape: BoxShape.circle,
+          ),
+        );
     }
   }
 }

@@ -21,6 +21,7 @@ import '../viewmodel/provider/game_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_dotted_button.dart';
+import '../theme/app_colors.dart';
 
 class GameSetupPage extends StatefulWidget {
   final int? gamesIndex;
@@ -243,151 +244,223 @@ class _GameSetupPageState extends State<GameSetupPage> {
     }
   }
 
+  Future<void> _save() async {
+    final gp = Provider.of<GameProvider>(context, listen: false);
+
+    final newGame = Game(
+      id: gameId,
+      userId: newUserId,
+      name: newGameName ?? 'noName',
+      gameType: isTypeChecked[0] ? GameType.rpg : GameType.mobile,
+      gameResetHour: newGameResetHour ?? 0,
+      gameResetMinute: newGameResetMinute ?? 0,
+      weeklyResetWeekday: Weekday.fromValue(weekSelectedIndex),
+      createdAt: isEditing
+          ? gp.games[widget.gamesIndex!].createdAt
+          : DateTime.now(),
+    );
+
+    if (isEditing) {
+      await gp.updateGame(gp.games[widget.gamesIndex!].id, newGame);
+    } else {
+      await gp.addGame(newGame);
+    }
+
+    final dailyQuestsToSave = isDailyChecked
+        ? <EditableQuestItem>[]
+        : dailyQuests;
+    final weeklyToSave = isChracterChecked
+        ? <String, List<EditableQuestItem>>{}
+        : weeklyQuestsByCharacter;
+    final monthlyToSave = isChracterChecked
+        ? <String, List<EditableQuestItem>>{}
+        : monthlyQuestsByCharacter;
+    final goalToSave = isChracterChecked
+        ? <String, List<EditableQuestItem>>{}
+        : goalQuestsByCharacter;
+
+    // --- 일일 퀘스트 diff ---
+    if (isEditing) {
+      final currentDailyIds = dailyQuestsToSave
+          .where((e) => e.id != null)
+          .map((e) => e.id!)
+          .toSet();
+      final removedDailyIds = originalDailyIds.difference(currentDailyIds);
+      for (final id in removedDailyIds) {
+        await gp.deleteDailyById(id);
+      }
+    }
+    for (final item in dailyQuestsToSave) {
+      if (item.id != null) {
+        await gp.updateDailyQuestName(item.id!, item.name);
+      } else {
+        await gp.addDaily(
+          DailyQuestItem(id: uuid.v4(), gameId: gameId!, name: item.name),
+        );
+      }
+    }
+
+    // --- 캐릭터 diff ---
+    if (isEditing) {
+      final currentCharacterIds = newCharacterIds.toSet();
+      final removedCharacterIds = originalCharacterIds.difference(
+        currentCharacterIds,
+      );
+      for (final id in removedCharacterIds) {
+        await gp.deleteCharacterById(id, reload: false);
+      }
+      if (removedCharacterIds.isNotEmpty) {
+        await gp.loadCharacters(gameId!);
+        await gp.loadCharacterQuests(gameId!);
+      }
+    }
+    for (int i = 0; i < newCharacterIds.length; i++) {
+      final id = newCharacterIds[i];
+      if (isEditing && originalCharacterIds.contains(id)) {
+        await gp.updateCharacterName(id, newCharacterName[i]);
+      } else {
+        await gp.addCharacter(
+          Character(id: id, gameId: gameId!, name: newCharacterName[i]),
+        );
+      }
+    }
+
+    // --- 캐릭터 퀘스트(weekly+monthly+goal) diff ---
+    final allCurrentQuestIds = <String>{};
+
+    Future<void> syncQuestList(
+      Map<String, List<EditableQuestItem>> byCharacter,
+      QuestCategory category,
+    ) async {
+      for (final characterId in byCharacter.keys) {
+        // 이미 삭제된 캐릭터에 딸린 항목은 건너뜀 (deleteCharacterById가 이미 정리함)
+        if (!newCharacterIds.contains(characterId)) continue;
+
+        for (final item in byCharacter[characterId]!) {
+          if (item.id != null) {
+            allCurrentQuestIds.add(item.id!);
+            await gp.updateCharacterQuest(
+              item.id!,
+              name: item.name,
+              memo: item.memo,
+              dueDate: (item.dueMonth != null && item.dueDay != null)
+                  ? DateTime(DateTime.now().year, item.dueMonth!, item.dueDay!)
+                  : null,
+              reload: false,
+            );
+          } else {
+            await gp.addCharacterQuest(
+              CharacterQuestItem(
+                id: uuid.v4(),
+                gameId: gameId!,
+                characterId: characterId,
+                category: category,
+                name: item.name,
+                memo: item.memo,
+                dueDate: (item.dueMonth != null && item.dueDay != null)
+                    ? DateTime(
+                        DateTime.now().year,
+                        item.dueMonth!,
+                        item.dueDay!,
+                      )
+                    : null,
+              ),
+              reload: false,
+            );
+          }
+        }
+      }
+    }
+
+    await syncQuestList(weeklyToSave, QuestCategory.weekly);
+    await syncQuestList(monthlyToSave, QuestCategory.monthly);
+    await syncQuestList(goalToSave, QuestCategory.goal);
+
+    if (isEditing) {
+      final removedQuestIds = originalCharacterQuestIds.difference(
+        allCurrentQuestIds,
+      );
+      // 캐릭터 삭제로 이미 정리된 퀘스트는 제외
+      final existingQuestIds = gp
+          .characterQuests(gameId!)
+          .map((q) => q.id)
+          .toSet();
+      for (final id in removedQuestIds.where(existingQuestIds.contains)) {
+        await gp.deleteCharacterQuestById(id, reload: false);
+      }
+    }
+    await gp.loadCharacterQuests(gameId!);
+    if (context.mounted) context.go('/game_main_page');
+  }
+
   @override
   Widget build(BuildContext context) {
-    TextTheme textTheme = Theme.of(context).textTheme;
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
     return Scaffold(
-      appBar: CustomAppBar(title: newGameName ?? '새 게임 추가'),
+      appBar: CustomAppBar(
+        title: newGameName ?? (isEditing ? '게임 설정' : '새 게임 추가'),
+      ),
+      // 스크롤 없이 항상 보이는 저장 버튼
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: CustomButton(
+            customText: '설정 완료',
+            backgroundColors: colorScheme.primary,
+            fontStyle: textTheme.bodyMedium!.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onPrimary,
+            ),
+            onPressed: _save,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
           child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
             child: Form(
               key: _formKey,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '게임 이름',
-                      style: textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: TextFormField(
+              child: Column(
+                spacing: 16,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── 1. 기본 정보 ──
+                  _card(
+                    title: '기본 정보',
+                    children: [
+                      TextFormField(
                         key: ValueKey('game_name_$_templateGeneration'),
                         initialValue: newGameName,
-                        onChanged: (String newName) {
-                          newGameName = newName;
-                        },
-                        decoration: InputDecoration(
-                          hintText: '게임 이름을 입력하세요.',
-                          filled: true,
-                          fillColor: Colors.grey.shade300,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(Icons.close),
-                            onPressed: () {},
-                          ),
-                        ),
+                        onChanged: (v) => newGameName = v,
+                        decoration: _inputDecoration('게임 이름을 입력하세요.'),
                       ),
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      '게임 유형',
-                      style: textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
+                      Row(
+                        spacing: 12,
+                        children: [
+                          _typeCard(
+                            'RPG',
+                            '캐릭터 여러 개',
+                            isTypeChecked[0],
+                            () => setState(() => isTypeChecked = [true, false]),
+                          ),
+                          _typeCard(
+                            '모바일 게임',
+                            '계정 1개',
+                            isTypeChecked[1],
+                            () => setState(() => isTypeChecked = [false, true]),
+                          ),
+                        ],
                       ),
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isTypeChecked = [true, false];
-                              });
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isTypeChecked[0]
-                                    ? colorScheme.primary
-                                    : colorScheme.onPrimary,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'RPG',
-                                    style: textTheme.bodyLarge?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  Text(
-                                    '캐릭터 여러 개',
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 20),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                isTypeChecked = [false, true];
-                              });
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isTypeChecked[1]
-                                    ? colorScheme.primary
-                                    : colorScheme.onPrimary,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    '모바일 게임',
-                                    style: textTheme.bodyLarge?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  Text(
-                                    '계정 1개',
-                                    style: textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: colorScheme.onPrimary,
-                        ),
-                        child: TextButton.icon(
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
                           onPressed: () async {
                             final currentType = isTypeChecked[0]
                                 ? GameType.rpg
@@ -400,423 +473,332 @@ class _GameSetupPageState extends State<GameSetupPage> {
                             );
                             if (template != null) _applyTemplate(template);
                           },
-                          icon: Icon(
-                            Icons.list_alt,
-                            size: 18,
-                            color: colorScheme.primary,
-                          ),
-                          label: Text(
-                            '템플릿 보기',
-                            style: textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
+                          icon: const Icon(Icons.list_alt, size: 18),
+                          label: const Text('템플릿 불러오기'),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(46),
+                            side: BorderSide(
+                              color: colorScheme.primary.withValues(alpha: 0.4),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      '게임 초기화 설정',
-                      style: textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (isEditing)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2, bottom: 8),
-                        child: Text(
+                    ],
+                  ),
+
+                  // ── 2. 게임 초기화 설정 ──
+                  _card(
+                    title: '게임 초기화 설정',
+                    children: [
+                      if (isEditing)
+                        Text(
                           '설정을 바꾸면 오늘/이번 주 체크가 풀려 보일 수 있어요.',
                           style: textTheme.bodySmall?.copyWith(
-                            color: Colors.grey.shade700,
+                            color: colorScheme.outline,
                           ),
                         ),
+                      Text(
+                        '초기화 시간',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    Text(
-                      '초기화 시간',
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    Container(
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: colorScheme.onPrimary,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: CupertinoPicker(
-                              scrollController: _hourController,
-                              itemExtent: 32,
-                              onSelectedItemChanged: (int index) {
-                                setState(() {
-                                  newGameResetHour = index;
-                                });
-                              },
-                              children: List.generate(24, (index) {
-                                return Center(
-                                  child: Text(
-                                    index.toString().padLeft(2, '0'),
-                                  ), // 00, 01, 02 ...
-                                );
-                              }),
-                            ),
-                          ),
-                          Text(':', style: TextStyle(fontSize: 24)),
-                          Expanded(
-                            child: CupertinoPicker(
-                              scrollController: _minuteController,
-                              itemExtent: 32,
-                              onSelectedItemChanged: (int index) {
-                                setState(() {
-                                  newGameResetMinute = index;
-                                });
-                              },
-                              children: List.generate(60, (index) {
-                                return Center(
-                                  child: Text(
-                                    index.toString().padLeft(2, '0'),
-                                  ), // 00, 01, 02 ...
-                                );
-                              }),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      '주간 초기화 요일',
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    ...getWeekButton(colorScheme),
-                    SizedBox(height: 12),
-                    getCheckBox(
-                      textTheme,
-                      '일일 퀘스트 종류',
-                      isDailyChecked,
-                      (value) => setState(() => isDailyChecked = value),
-                    ),
-                    if (!isDailyChecked) ...getDailyInputText('일일 퀘스트를 입력하세요.'),
-                    if (!isDailyChecked)
-                      CustomDottedButton(
-                        customText: '+ 일일 퀘스트 추가',
-                        onPressed: () {
-                          setState(() {
-                            dailyQuests.add(EditableQuestItem(name: ''));
-                          });
-                        },
-                      ),
-                    SizedBox(height: 12),
-                    getCheckBox(
-                      textTheme,
-                      '캐릭터별 설정',
-                      isChracterChecked,
-                      (value) => setState(() => isChracterChecked = value),
-                    ),
-                    Text(
-                      '캐릭터별로 주/월 퀘스트와 목표를 설정할 수 있어요.',
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    ...getCharacterButton(colorScheme),
-                    SizedBox(height: 12),
-                    if (!isChracterChecked)
                       Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(12),
+                        height: 100,
                         decoration: BoxDecoration(
-                          color: colorScheme.onPrimary,
-                          border: Border.all(color: Colors.grey.shade300),
+                          color: AppColors.bg,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
+                        child: Row(
                           children: [
-                            Text(
-                              '캐릭터 개별 설정', //'${characters[chracterSelectedIndex]} 캐릭터 개별 설정',
-                              style: textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
+                            Expanded(
+                              child: CupertinoPicker(
+                                scrollController: _hourController,
+                                itemExtent: 32,
+                                onSelectedItemChanged: (int index) {
+                                  setState(() => newGameResetHour = index);
+                                },
+                                children: List.generate(24, (index) {
+                                  return Center(
+                                    child: Text(
+                                      index.toString().padLeft(2, '0'),
+                                    ),
+                                  );
+                                }),
                               ),
                             ),
-                            Divider(
-                              height: 24, // 위아래 여백 포함 전체 높이
-                              thickness: 1, // 선 두께
-                              color: Colors.grey.shade300,
-                              indent: 5, // 왼쪽 여백
-                              endIndent: 5, // 오른쪽 여백
-                            ),
-                            Text(
-                              '주간 퀘스트',
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: Colors.grey.shade800,
+                            const Text(':', style: TextStyle(fontSize: 24)),
+                            Expanded(
+                              child: CupertinoPicker(
+                                scrollController: _minuteController,
+                                itemExtent: 32,
+                                onSelectedItemChanged: (int index) {
+                                  setState(() => newGameResetMinute = index);
+                                },
+                                children: List.generate(60, (index) {
+                                  return Center(
+                                    child: Text(
+                                      index.toString().padLeft(2, '0'),
+                                    ),
+                                  );
+                                }),
                               ),
-                            ),
-                            ...getWeeklyInputText('주간 퀘스트를 입력하세요.'),
-                            CustomDottedButton(
-                              customText: '+ 주간 퀘스트 추가',
-                              onPressed: () {
-                                setState(() {
-                                  weeklyQuestsByCharacter[selectedCharacterId!]!
-                                      .add(EditableQuestItem(name: ''));
-                                });
-                              },
-                            ),
-                            Text(
-                              '월간 퀘스트',
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: Colors.grey.shade800,
-                              ),
-                            ),
-                            ...getMonthlyInputText('월간 퀘스트를 입력하세요.'),
-                            CustomDottedButton(
-                              customText: '+ 월간 퀘스트 추가',
-                              onPressed: () {
-                                setState(() {
-                                  monthlyQuestsByCharacter[selectedCharacterId!]!
-                                      .add(EditableQuestItem(name: ''));
-                                });
-                              },
-                            ),
-                            Text(
-                              '목표',
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: Colors.grey.shade800,
-                              ),
-                            ),
-                            ...getTargetlyInputText(colorScheme),
-                            CustomDottedButton(
-                              customText: '+ 목표 추가',
-                              onPressed: () {
-                                setState(() {
-                                  goalQuestsByCharacter[selectedCharacterId!]!
-                                      .add(
-                                        EditableQuestItem(
-                                          name: '',
-                                          memo: '',
-                                          dueMonth: DateTime.now().month,
-                                          dueDay: DateTime.now().day,
-                                        ),
-                                      );
-                                });
-                              },
                             ),
                           ],
                         ),
                       ),
-                    SizedBox(height: 12),
-                    CustomButton(
-                      customText: '설정 완료',
-                      backgroundColors: colorScheme.primary,
-                      fontStyle: textTheme.bodyMedium!.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onPrimary,
+                      Text(
+                        '주간 초기화 요일',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      onPressed: () async {
-                        final gp = Provider.of<GameProvider>(
-                          context,
-                          listen: false,
-                        );
+                      ...getWeekButton(colorScheme),
+                    ],
+                  ),
 
-                        final newGame = Game(
-                          id: gameId,
-                          userId: newUserId,
-                          name: newGameName ?? 'noName',
-                          gameType: isTypeChecked[0]
-                              ? GameType.rpg
-                              : GameType.mobile,
-                          gameResetHour: newGameResetHour ?? 0,
-                          gameResetMinute: newGameResetMinute ?? 0,
-                          weeklyResetWeekday: Weekday.fromValue(
-                            weekSelectedIndex,
+                  // ── 3. 일일 퀘스트 ──
+                  _card(
+                    children: [
+                      getCheckBox(
+                        textTheme,
+                        '일일 퀘스트 종류',
+                        isDailyChecked,
+                        (value) => setState(() => isDailyChecked = value),
+                      ),
+                      if (!isDailyChecked)
+                        ..._questInputs(
+                          dailyQuests,
+                          'daily_$_templateGeneration',
+                          '일일 퀘스트를 입력하세요.',
+                        ),
+                      if (!isDailyChecked)
+                        CustomDottedButton(
+                          customText: '+ 일일 퀘스트 추가',
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          height: 44,
+                          onPressed: () {
+                            setState(() {
+                              dailyQuests.add(EditableQuestItem(name: ''));
+                            });
+                          },
+                        ),
+                    ],
+                  ),
+
+                  // ── 4. 캐릭터별 설정 ──
+                  _card(
+                    children: [
+                      getCheckBox(
+                        textTheme,
+                        '캐릭터별 설정',
+                        isChracterChecked,
+                        (value) => setState(() => isChracterChecked = value),
+                      ),
+                      Text(
+                        '캐릭터별로 주/월 퀘스트와 목표를 설정할 수 있어요.',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.outline,
+                        ),
+                      ),
+                      ...getCharacterButton(colorScheme),
+                      if (!isChracterChecked) ...[
+                        const Divider(height: 8, color: AppColors.bg),
+
+                        Text(
+                          '주간 퀘스트',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
-                          createdAt: isEditing
-                              ? gp.games[widget.gamesIndex!].createdAt
-                              : DateTime.now(),
-                        );
+                        ),
+                        ..._questInputs(
+                          weeklyQuestsByCharacter[selectedCharacterId!]!,
+                          'weekly_${_templateGeneration}_$selectedCharacterId',
+                          '주간 퀘스트를 입력하세요.',
+                        ),
+                        CustomDottedButton(
+                          customText: '+ 주간 퀘스트 추가',
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          height: 44,
+                          onPressed: () {
+                            setState(() {
+                              weeklyQuestsByCharacter[selectedCharacterId!]!
+                                  .add(EditableQuestItem(name: ''));
+                            });
+                          },
+                        ),
 
-                        if (isEditing) {
-                          await gp.updateGame(
-                            gp.games[widget.gamesIndex!].id,
-                            newGame,
-                          );
-                        } else {
-                          await gp.addGame(newGame);
-                        }
+                        Text(
+                          '월간 퀘스트',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        ..._questInputs(
+                          monthlyQuestsByCharacter[selectedCharacterId!]!,
+                          'monthly_${_templateGeneration}_$selectedCharacterId',
+                          '월간 퀘스트를 입력하세요.',
+                        ),
+                        CustomDottedButton(
+                          customText: '+ 월간 퀘스트 추가',
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          height: 44,
+                          onPressed: () {
+                            setState(() {
+                              monthlyQuestsByCharacter[selectedCharacterId!]!
+                                  .add(EditableQuestItem(name: ''));
+                            });
+                          },
+                        ),
 
-                        final dailyQuestsToSave = isDailyChecked
-                            ? <EditableQuestItem>[]
-                            : dailyQuests;
-                        final weeklyToSave = isChracterChecked
-                            ? <String, List<EditableQuestItem>>{}
-                            : weeklyQuestsByCharacter;
-                        final monthlyToSave = isChracterChecked
-                            ? <String, List<EditableQuestItem>>{}
-                            : monthlyQuestsByCharacter;
-                        final goalToSave = isChracterChecked
-                            ? <String, List<EditableQuestItem>>{}
-                            : goalQuestsByCharacter;
-
-                        // --- 일일 퀘스트 diff ---
-                        if (isEditing) {
-                          final currentDailyIds = dailyQuestsToSave
-                              .where((e) => e.id != null)
-                              .map((e) => e.id!)
-                              .toSet();
-                          final removedDailyIds = originalDailyIds.difference(
-                            currentDailyIds,
-                          );
-                          for (final id in removedDailyIds) {
-                            await gp.deleteDailyById(id);
-                          }
-                        }
-                        for (final item in dailyQuestsToSave) {
-                          if (item.id != null) {
-                            await gp.updateDailyQuestName(item.id!, item.name);
-                          } else {
-                            await gp.addDaily(
-                              DailyQuestItem(
-                                id: uuid.v4(),
-                                gameId: gameId!,
-                                name: item.name,
-                              ),
-                            );
-                          }
-                        }
-
-                        // --- 캐릭터 diff ---
-                        if (isEditing) {
-                          final currentCharacterIds = newCharacterIds.toSet();
-                          final removedCharacterIds = originalCharacterIds
-                              .difference(currentCharacterIds);
-                          for (final id in removedCharacterIds) {
-                            await gp.deleteCharacterById(id, reload: false);
-                          }
-                          if (removedCharacterIds.isNotEmpty) {
-                            await gp.loadCharacters(gameId!);
-                            await gp.loadCharacterQuests(gameId!);
-                          }
-                        }
-                        for (int i = 0; i < newCharacterIds.length; i++) {
-                          final id = newCharacterIds[i];
-                          if (isEditing && originalCharacterIds.contains(id)) {
-                            await gp.updateCharacterName(
-                              id,
-                              newCharacterName[i],
-                            );
-                          } else {
-                            await gp.addCharacter(
-                              Character(
-                                id: id,
-                                gameId: gameId!,
-                                name: newCharacterName[i],
-                              ),
-                            );
-                          }
-                        }
-
-                        // --- 캐릭터 퀘스트(weekly+monthly+goal) diff ---
-                        final allCurrentQuestIds = <String>{};
-
-                        Future<void> syncQuestList(
-                          Map<String, List<EditableQuestItem>> byCharacter,
-                          QuestCategory category,
-                        ) async {
-                          for (final characterId in byCharacter.keys) {
-                            // 이미 삭제된 캐릭터에 딸린 항목은 건너뜀 (deleteCharacterById가 이미 정리함)
-                            if (!newCharacterIds.contains(characterId))
-                              continue;
-
-                            for (final item in byCharacter[characterId]!) {
-                              if (item.id != null) {
-                                allCurrentQuestIds.add(item.id!);
-                                await gp.updateCharacterQuest(
-                                  item.id!,
-                                  name: item.name,
-                                  memo: item.memo,
-                                  dueDate:
-                                      (item.dueMonth != null &&
-                                          item.dueDay != null)
-                                      ? DateTime(
-                                          DateTime.now().year,
-                                          item.dueMonth!,
-                                          item.dueDay!,
-                                        )
-                                      : null,
-                                  reload: false,
-                                );
-                              } else {
-                                await gp.addCharacterQuest(
-                                  CharacterQuestItem(
-                                    id: uuid.v4(),
-                                    gameId: gameId!,
-                                    characterId: characterId,
-                                    category: category,
-                                    name: item.name,
-                                    memo: item.memo,
-                                    dueDate:
-                                        (item.dueMonth != null &&
-                                            item.dueDay != null)
-                                        ? DateTime(
-                                            DateTime.now().year,
-                                            item.dueMonth!,
-                                            item.dueDay!,
-                                          )
-                                        : null,
-                                  ),
-                                  reload: false,
-                                );
-                              }
-                            }
-                          }
-                        }
-
-                        await syncQuestList(weeklyToSave, QuestCategory.weekly);
-                        await syncQuestList(
-                          monthlyToSave,
-                          QuestCategory.monthly,
-                        );
-                        await syncQuestList(goalToSave, QuestCategory.goal);
-
-                        if (isEditing) {
-                          final removedQuestIds = originalCharacterQuestIds
-                              .difference(allCurrentQuestIds);
-                          // 캐릭터 삭제로 이미 정리된 퀘스트는 제외
-                          final existingQuestIds = gp
-                              .characterQuests(gameId!)
-                              .map((q) => q.id)
-                              .toSet();
-                          for (final id in removedQuestIds.where(
-                            existingQuestIds.contains,
-                          )) {
-                            await gp.deleteCharacterQuestById(
-                              id,
-                              reload: false,
-                            );
-                          }
-                        }
-                        await gp.loadCharacterQuests(gameId!);
-                        if (context.mounted) context.go('/game_main_page');
-                      },
-                      borderSide: BorderSide(color: colorScheme.primary),
-                    ),
-                  ],
-                ),
+                        Text(
+                          '목표',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        ...getTargetlyInputText(colorScheme),
+                        CustomDottedButton(
+                          customText: '+ 목표 추가',
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          height: 44,
+                          onPressed: () {
+                            setState(() {
+                              goalQuestsByCharacter[selectedCharacterId!]!.add(
+                                EditableQuestItem(
+                                  name: '',
+                                  memo: '',
+                                  dueMonth: DateTime.now().month,
+                                  dueDay: DateTime.now().day,
+                                ),
+                              );
+                            });
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  // 입력창 공통 스타일
+  InputDecoration _inputDecoration(String hint, {Widget? suffixIcon}) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey.shade500),
+      filled: true,
+      fillColor: AppColors.bg,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      suffixIcon: suffixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primary, width: 1.5),
+      ),
+    );
+  }
+
+  // 섹션 카드
+  Widget _card({String? title, required List<Widget> children}) {
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 12,
+        children: [
+          if (title != null)
+            Text(
+              title,
+              style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  // 게임 유형 선택 카드
+  Widget _typeCard(
+    String title,
+    String sub,
+    bool selected,
+    VoidCallback onTap,
+  ) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: selected ? cs.primary.withValues(alpha: 0.08) : AppColors.bg,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected ? cs.primary : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            children: [
+              Text(
+                title,
+                style: tt.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: selected ? cs.primary : null,
+                ),
+              ),
+              Text(sub, style: tt.bodySmall?.copyWith(color: cs.outline)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 퀘스트 이름 입력창 목록 (일일/주간/월간 공통)
+  // keyPrefix 예: 일일 'daily_$_templateGeneration'
+  //               주간 'weekly_${_templateGeneration}_$selectedCharacterId'
+  List<Widget> _questInputs(
+    List<EditableQuestItem> list,
+    String keyPrefix,
+    String hint,
+  ) {
+    return [
+      for (int i = 0; i < list.length; i++)
+        TextFormField(
+          key: ValueKey('${keyPrefix}_${list[i].id ?? 'new_$i'}'),
+          initialValue: list[i].name,
+          onChanged: (String name) => list[i].name = name,
+          decoration: _inputDecoration(
+            hint,
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => setState(() => list.removeAt(i)),
+            ),
+          ),
+        ),
+    ];
   }
 
   Row getCheckBox(
@@ -832,154 +814,28 @@ class _GameSetupPageState extends State<GameSetupPage> {
           text,
           style: textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Checkbox(
-              value: isChecked,
-              onChanged: (bool? value) {
-                setState(() {
-                  onChanged(value ?? false);
-                });
-              },
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              visualDensity: VisualDensity.compact,
-            ),
-            text == '캐릭터별 설정' ? Text('주간/월간/목표 없음') : Text('없음'),
-          ],
+        InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => setState(() => onChanged(!isChecked)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Checkbox(
+                value: isChecked,
+                onChanged: (bool? value) =>
+                    setState(() => onChanged(value ?? false)),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              ),
+              Text(
+                text == '캐릭터별 설정' ? '주간/월간/목표 없음' : '없음',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
         ),
       ],
     );
-  }
-
-  List<Widget> getDailyInputText(String text) {
-    List<Widget> dailyQuestWidget = [];
-    for (int i = 0; i < dailyQuests.length; i++) {
-      dailyQuestWidget.add(
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: TextFormField(
-            key: ValueKey(
-              'daily_${_templateGeneration}_${dailyQuests[i].id ?? 'new_$i'}',
-            ),
-            initialValue: dailyQuests[i].name,
-            onChanged: (String name) {
-              dailyQuests[i].name = name;
-            },
-            decoration: InputDecoration(
-              hintText: text,
-              filled: true,
-              fillColor: Colors.grey.shade300,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(Icons.close),
-                onPressed: () {
-                  setState(() {
-                    dailyQuests.removeAt(i);
-                  });
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return dailyQuestWidget;
-  }
-
-  List<Widget> getWeeklyInputText(String text) {
-    final currentCharacterId = selectedCharacterId!;
-    final currentList = weeklyQuestsByCharacter[currentCharacterId]!;
-    List<Widget> weeklyQuestWidget = [];
-    for (int i = 0; i < currentList.length; i++) {
-      weeklyQuestWidget.add(
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: TextFormField(
-            key: ValueKey(
-              'weekly_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
-            ),
-            initialValue: currentList[i].name,
-            onChanged: (String name) {
-              currentList[i].name = name;
-            },
-            decoration: InputDecoration(
-              hintText: text,
-              filled: true,
-              fillColor: Colors.grey.shade300,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(Icons.close),
-                onPressed: () {
-                  setState(() {
-                    currentList.removeAt(i);
-                  });
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return weeklyQuestWidget;
-  }
-
-  List<Widget> getMonthlyInputText(String text) {
-    final currentCharacterId = selectedCharacterId!;
-    final currentList = monthlyQuestsByCharacter[currentCharacterId]!;
-    List<Widget> monthlyQuestWidget = [];
-    for (int i = 0; i < currentList.length; i++) {
-      monthlyQuestWidget.add(
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: TextFormField(
-            key: ValueKey(
-              'monthly_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
-            ),
-            initialValue: currentList[i].name,
-            onChanged: (String name) {
-              currentList[i].name = name;
-            },
-            decoration: InputDecoration(
-              hintText: text,
-              filled: true,
-              fillColor: Colors.grey.shade300,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(Icons.close),
-                onPressed: () {
-                  setState(() {
-                    currentList.removeAt(i);
-                  });
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    return monthlyQuestWidget;
   }
 
   List<Widget> getTargetlyInputText(ColorScheme colorScheme) {
@@ -988,79 +844,43 @@ class _GameSetupPageState extends State<GameSetupPage> {
     List<Widget> targetQuestWidget = [];
     for (int i = 0; i < currentList.length; i++) {
       final goal = currentList[i];
+      final keySuffix =
+          '${_templateGeneration}_${currentCharacterId}_${goal.id ?? 'new_$i'}';
       targetQuestWidget.add(
         Padding(
-          padding: const EdgeInsets.all(5.0),
+          padding: const EdgeInsets.only(bottom: 12),
           child: Column(
+            spacing: 8,
             children: [
               TextFormField(
-                key: ValueKey(
-                  'goal_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
-                ),
+                key: ValueKey('goal_$keySuffix'),
                 initialValue: goal.name,
-                onChanged: (value) {
-                  goal.name = value;
-                },
-                decoration: InputDecoration(
-                  hintText: '목표를 입력하세요',
-                  filled: true,
-                  fillColor: Colors.grey.shade300,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
+                onChanged: (value) => goal.name = value,
+                decoration: _inputDecoration(
+                  '목표를 입력하세요',
                   suffixIcon: IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      setState(() {
-                        currentList.removeAt(i);
-                      });
-                    },
+                    icon: const Icon(Icons.close),
+                    onPressed: () => setState(() => currentList.removeAt(i)),
                   ),
                 ),
               ),
-              SizedBox(height: 6),
               TextFormField(
-                key: ValueKey(
-                  'goal_memo_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
-                ),
+                key: ValueKey('goal_memo_$keySuffix'),
                 initialValue: goal.memo,
-                onChanged: (value) {
-                  goal.memo = value;
-                },
-                decoration: InputDecoration(
-                  hintText: '목표 내용을 자세히 입력 해주세요',
-                  filled: true,
-                  fillColor: Colors.grey.shade300,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                ),
+                onChanged: (value) => goal.memo = value,
+                decoration: _inputDecoration('목표 내용을 자세히 입력 해주세요'),
               ),
-              SizedBox(height: 6),
               Container(
                 height: 100,
                 decoration: BoxDecoration(
-                  color: colorScheme.onPrimary,
+                  color: AppColors.bg,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Row(
                   children: [
                     Expanded(
                       child: CupertinoPicker(
-                        key: ValueKey(
-                          'goal_month_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
-                        ),
+                        key: ValueKey('goal_month_$keySuffix'),
                         itemExtent: 32,
                         scrollController: FixedExtentScrollController(
                           initialItem: (goal.dueMonth as int) - 1,
@@ -1086,33 +906,25 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         }),
                       ),
                     ),
-                    Text(':', style: TextStyle(fontSize: 24)),
+                    const Text(':', style: TextStyle(fontSize: 24)),
                     Expanded(
                       child: CupertinoPicker(
-                        key: ValueKey(
-                          'goal_day_${_templateGeneration}_${currentCharacterId}_${currentList[i].id ?? 'new_$i'}',
-                        ),
+                        key: ValueKey('goal_day_$keySuffix'),
                         itemExtent: 32,
                         scrollController: FixedExtentScrollController(
                           initialItem: (goal.dueDay as int) - 1,
                         ),
                         onSelectedItemChanged: (int index) {
-                          setState(() {
-                            goal.dueDay = index + 1;
-                          });
+                          setState(() => goal.dueDay = index + 1);
                         },
                         children: List.generate(
                           DateUtils.getDaysInMonth(
                             DateTime.now().year,
                             goal.dueMonth!,
                           ),
-                          (index) {
-                            return Center(
-                              child: Text(
-                                (index + 1).toString().padLeft(2, '0'),
-                              ),
-                            );
-                          },
+                          (index) => Center(
+                            child: Text((index + 1).toString().padLeft(2, '0')),
+                          ),
                         ),
                       ),
                     ),
@@ -1128,40 +940,39 @@ class _GameSetupPageState extends State<GameSetupPage> {
   }
 
   List<Widget> getWeekButton(ColorScheme colorScheme) {
-    List<Widget> weekButton = [];
-    bool isSelected;
-    weekButton.add(
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: List.generate(weekList.length, (index) {
-            return Padding(
-              padding: EdgeInsets.only(right: 1),
-              child: ChoiceChip(
-                label: Text(weekList[index]),
-                selected: isSelected = weekSelectedIndex == index + 1,
-                onSelected: (bool selected) {
-                  setState(() {
-                    weekSelectedIndex = index + 1;
-                  });
-                },
-                showCheckmark: false,
-                labelPadding: EdgeInsets.symmetric(horizontal: 4),
-                selectedColor: colorScheme.primary,
-                backgroundColor: colorScheme.onPrimary,
-                labelStyle: TextStyle(
-                  color: isSelected ? colorScheme.onPrimary : Colors.black,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+    return [
+      Row(
+        children: List.generate(weekList.length, (index) {
+          final isSelected = weekSelectedIndex == index + 1;
+          return Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(
+                right: index == weekList.length - 1 ? 0 : 6,
+              ),
+              child: GestureDetector(
+                onTap: () => setState(() => weekSelectedIndex = index + 1),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSelected ? colorScheme.primary : AppColors.bg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    weekList[index],
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: isSelected ? Colors.white : Colors.black87,
+                    ),
+                  ),
                 ),
               ),
-            );
-          }),
-        ),
+            ),
+          );
+        }),
       ),
-    );
-    return weekButton;
+    ];
   }
 
   List<Widget> getCharacterButton(ColorScheme colorScheme) {
@@ -1218,8 +1029,9 @@ class _GameSetupPageState extends State<GameSetupPage> {
                     },
                     showCheckmark: false,
                     labelPadding: EdgeInsets.symmetric(horizontal: 8),
-                    selectedColor: Colors.blue,
-                    backgroundColor: colorScheme.onPrimary,
+                    selectedColor: colorScheme.primary,
+                    backgroundColor: AppColors.bg,
+                    side: BorderSide.none,
                     labelStyle: TextStyle(
                       color: isSelected ? colorScheme.onPrimary : Colors.black,
                     ),
@@ -1263,7 +1075,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
                 options: CircularDottedBorderOptions(
                   dashPattern: [6, 3],
                   strokeWidth: 1.5,
-                  color: Colors.blue,
+                  color: colorScheme.primary,
                   padding: EdgeInsets.zero,
                 ),
                 child: SizedBox(

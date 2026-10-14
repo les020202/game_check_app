@@ -12,6 +12,7 @@ import '../utils/quest_period.dart';
 import '../viewmodel/provider/game_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/week_day_cell.dart';
+import '../theme/app_colors.dart';
 
 class GameDetailWeekPage extends StatefulWidget {
   final int gamesIndex;
@@ -35,6 +36,9 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
   Map<String, List<DayQuestStatus>> characterDailyStatusMap = {};
   Map<String, int> weeklyCompletedByCharacter = {};
   Map<String, int> weeklyTotalByCharacter = {};
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   @override
   void initState() {
@@ -190,177 +194,110 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
         child: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
           child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
             child: Column(
+              spacing: 16,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: colorScheme.onPrimary,
-                      borderRadius: BorderRadius.circular(12),
+                // ── 전체 현황 ──
+                _card(
+                  children: [
+                    Text(
+                      '${weekDates.first.month}월 ${weekDates.first.day}일 ~ '
+                      '${weekDates.last.month}월 ${weekDates.last.day}일',
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              '${weekDates.first.month}월 ${weekDates.first.day}일 ~ '
-                              '${weekDates.last.month}월 ${weekDates.last.day}일',
-                              style: textTheme.titleLarge?.copyWith(
+                    Text(
+                      '전체 일일퀘스트 ${two(_game.gameResetHour)}:${two(_game.gameResetMinute)} ~ '
+                      '${two(endHour)}:${two(endMinute)}',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.outline,
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: List.generate(
+                        7,
+                        (i) => WeekDayCell(
+                          date: weekDates[i],
+                          isToday: _isSameDay(
+                            weekDates[i],
+                            todayPeriodFor(_game),
+                          ),
+                          status:
+                              overallStatusMap[weekDates[i]] ??
+                              DayQuestStatus.upcoming,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // ── 캐릭터별 일일 퀘스트 ──
+                _card(
+                  children: [
+                    Text(
+                      '일일 퀘스트',
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    for (final character in _characters)
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 64,
+                            child: Text(
+                              character.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                          ],
-                        ),
-                        Text(
-                          '전체 일일퀘스트 ${two(_game.gameResetHour)}:${two(_game.gameResetMinute)} ~ '
-                          '${two(endHour)}:${two(endMinute)}',
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: List.generate(
-                            7,
-                            (i) => WeekDayCell(
-                              date: weekDates[i],
-                              status:
-                                  overallStatusMap[weekDates[i]] ??
-                                  DayQuestStatus.upcoming,
-                            ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        getGuideStatus(colorScheme),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: colorScheme.onPrimary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '일일 퀘스트',
-                          style: textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _characters.length,
-                          itemBuilder: (context, index) {
-                            final character = _characters[index];
-                            final statuses =
-                                characterDailyStatusMap[character.id] ?? [];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Row(
-                                children: [
-                                  SizedBox(
-                                    width: 40,
-                                    child: Text(
-                                      character.name,
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  for (int i = 0; i < 7; i++)
-                                    Expanded(
-                                      child: Center(
-                                        child: StatusIndicator(
-                                          status: i < statuses.length
-                                              ? statuses[i]
-                                              : DayQuestStatus.upcoming,
-                                        ),
-                                      ),
-                                    ),
-                                ],
+                          for (int i = 0; i < 7; i++)
+                            Expanded(
+                              child: Center(
+                                child: StatusIndicator(
+                                  status:
+                                      i <
+                                          (characterDailyStatusMap[character.id]
+                                                  ?.length ??
+                                              0)
+                                      ? characterDailyStatusMap[character
+                                            .id]![i]
+                                      : DayQuestStatus.upcoming,
+                                ),
                               ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        getGuideStatus(colorScheme),
-                      ],
-                    ),
-                  ),
+                            ),
+                        ],
+                      ),
+                    const Divider(height: 1, color: AppColors.bg),
+                    getGuideStatus(colorScheme),
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: colorScheme.onPrimary,
-                      borderRadius: BorderRadius.circular(12),
+
+                // ── 캐릭터별 주간 퀘스트 ──
+                _card(
+                  children: [
+                    Text(
+                      '주간 퀘스트',
+                      style: textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '주간 퀘스트',
-                          style: textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _characters.length,
-                          itemBuilder: (context, index) {
-                            final character = _characters[index];
-                            final completed =
-                                weeklyCompletedByCharacter[character.id] ?? 0;
-                            final total =
-                                weeklyTotalByCharacter[character.id] ?? 0;
-                            return Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      character.name,
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    Text(
-                                      '$completed/$total 완료',
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 6),
-                                ClipRRect(
-                                  child: LinearProgressIndicator(
-                                    value: total == 0 ? 0 : completed / total,
-                                    backgroundColor: Colors.grey,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
+                    for (final character in _characters)
+                      _weeklyRow(
+                        textTheme,
+                        colorScheme,
+                        character.name,
+                        weeklyCompletedByCharacter[character.id] ?? 0,
+                        weeklyTotalByCharacter[character.id] ?? 0,
+                      ),
+                  ],
                 ),
               ],
             ),
@@ -370,55 +307,80 @@ class _GameDetailWeekPageState extends State<GameDetailWeekPage> {
     );
   }
 
-  Row getGuideStatus(ColorScheme colorScheme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+  Widget _card({required List<Widget> children}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 12,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _weeklyRow(
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+    String name,
+    int completed,
+    int total,
+  ) {
+    return Column(
+      spacing: 6,
       children: [
-        Container(
-          width: 15,
-          height: 15,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.blue,
-            border: Border.all(color: Colors.blue, width: 1),
-          ),
-        ),
-        const Text('전체 완료'),
-        Container(
-          width: 15,
-          height: 15,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.grey.shade300,
-            border: Border.all(color: Colors.blue, width: 1),
-          ),
-        ),
-        const Text('일부 완료'),
-        Container(
-          width: 15,
-          height: 15,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.grey,
-          ),
-        ),
-        const Text('미완료'),
-        DottedBorder(
-          options: const CircularDottedBorderOptions(
-            color: Colors.grey,
-            strokeWidth: 1,
-            dashPattern: [3, 2],
-          ),
-          child: Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: colorScheme.onPrimary,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              name,
+              style: textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
+            Text(
+              total == 0 ? '퀘스트 없음' : '$completed/$total 완료',
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.outline,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: LinearProgressIndicator(
+            value: total == 0 ? 0 : completed / total,
+            minHeight: 8,
+            backgroundColor: AppColors.bg,
+            color: colorScheme.primary,
           ),
         ),
-        const Text('예정'),
+      ],
+    );
+  }
+
+  Widget getGuideStatus(ColorScheme colorScheme) {
+    Widget item(DayQuestStatus status, String label) => Row(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 4,
+      children: [
+        StatusIndicator(status: status, size: 14),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        item(DayQuestStatus.complete, '전체 완료'),
+        item(DayQuestStatus.partial, '일부 완료'),
+        item(DayQuestStatus.incomplete, '미완료'),
+        item(DayQuestStatus.upcoming, '예정'),
       ],
     );
   }

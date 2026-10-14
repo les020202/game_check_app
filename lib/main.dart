@@ -20,6 +20,7 @@ import 'viewmodel/provider/firebase_auth_provider.dart';
 import 'viewmodel/provider/firestore_support_provider.dart';
 import 'viewmodel/provider/game_provider.dart';
 import 'viewmodel/provider/game_template_provider.dart';
+import 'theme/app_colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -102,7 +103,12 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           brightness: Brightness.light,
           fontFamily: 'Pretendard',
-          scaffoldBackgroundColor: Colors.grey.shade200,
+          scaffoldBackgroundColor: AppColors.bg,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppColors.bg,
+            surfaceTintColor: Colors.transparent,
+            scrolledUnderElevation: 0,
+          ),
           colorScheme: ColorScheme.fromSeed(
             seedColor: Color(0xff006EFF),
             primary: Color(0xff006EFF),
