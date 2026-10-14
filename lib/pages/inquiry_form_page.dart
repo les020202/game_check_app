@@ -173,6 +173,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                         filled: true,
                         fillColor: colorScheme.onPrimary,
                         hintText: '문의 제목을 입력해주세요\n(최대100자)',
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: Colors.grey),
@@ -200,6 +201,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                         hintText:
                             '어떤 문제가 있으셨나요?\n어떤 화면에서 발생했는지,\n언제부터 그랬는지 적어주시면\n더 빠르게 도와드릴 수 있어요.\n(최대 3000자)',
                         hintMaxLines: 5,
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: Colors.grey),

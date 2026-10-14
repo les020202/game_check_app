@@ -71,6 +71,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         filled: true,
                         fillColor: colorScheme.onPrimary,
                         hintText: '멋진 사용자',
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: Colors.grey),
@@ -97,6 +98,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         filled: true,
                         fillColor: colorScheme.onPrimary,
                         hintText: 'example@example.com',
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: Colors.grey),
@@ -128,6 +130,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         filled: true,
                         fillColor: colorScheme.onPrimary,
                         hintText: '비밀번호를 입력하세요',
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
                         helperText: '*비밀번호는 6자 이상 입력해주세요.',
                         helperStyle: textTheme.bodySmall?.copyWith(
                           color: colorScheme.primary,
@@ -163,6 +166,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         filled: true,
                         fillColor: colorScheme.onPrimary,
                         hintText: '비밀번호를 한번더 입력하세요',
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: Colors.grey),
