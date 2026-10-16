@@ -72,7 +72,7 @@ class MyApp extends StatelessWidget {
           },
           update: (_, auth, previous) {
             final uid = auth.user?.id;
-            if (previous != null && _uidOf(previous.service) == uid) {
+            if (previous != null && _uidOf(previous.service) == uid) { // _uidOf: Drift면 null, Firestore면 uid
               return previous; // 같은 유저(또는 계속 비로그인)면 기존 인스턴스 유지
             }
             return GameProvider(
