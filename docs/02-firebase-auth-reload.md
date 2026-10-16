@@ -1,4 +1,4 @@
-# 8. Firebase Auth 기능 구현 중 타이밍 이슈 (`reload()` 후 최신 유저 정보 반영)
+# 2. Firebase Auth 기능 구현 중 타이밍 이슈 (`reload()` 후 최신 유저 정보 반영)
 
 [← README로 돌아가기](../README.md#트러블슈팅)
 

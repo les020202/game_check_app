@@ -1,4 +1,4 @@
-# 1. `game_setup_page`에서 고정 크기 위젯의 오버플로우 문제
+# 4. `game_setup_page`에서 고정 크기 위젯의 오버플로우 문제
 
 [← README로 돌아가기](../README.md#트러블슈팅)
 

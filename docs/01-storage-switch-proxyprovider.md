@@ -1,4 +1,4 @@
-# 9. 로그인 전에는 로컬, 로그인 후에는 Firestore에 저장해야 하는 문제 (서비스 분리 + `ProxyProvider`)
+# 1. 로그인 전에는 로컬, 로그인 후에는 Firestore에 저장해야 하는 문제 (서비스 분리 + `ProxyProvider`)
 
 [← README로 돌아가기](../README.md#트러블슈팅)
 
@@ -60,8 +60,18 @@ ChangeNotifierProxyProvider<FirebaseAuthProvider, GameProvider>(
 
 `update`는 `FirebaseAuthProvider`가 `notifyListeners()`를 호출할 때마다 실행됨. 이때 매번 새 `GameProvider`를 만들면 화면에 올라가 있던 상태(불러온 게임 데이터 등)가 초기화되어버림. 그래서 "로그인 상태가 실제로 바뀐 경우에만" 새로 만들고, 그렇지 않으면 `previous`를 그대로 반환하도록 조건을 둔 것.
 
+## 이후 개선: 로그인 여부(bool) 대신 uid로 비교
+
+위 코드는 `isLoggedIn`(로그인 여부)만 비교함. 그런데 로그인 여부만 보면 **A 계정에서 B 계정으로 바뀌는 경우**처럼 로그인 상태(`true`)는 그대로인데 사용자가 바뀐 상황을 구분하지 못함. 이러면 `FirestoreGameService`가 이전 사용자의 uid를 계속 들고 있게 될 수 있음.
+
+그래서 현재 코드는 `FirestoreGameService(uid)`처럼 서비스가 uid를 가지도록 하고, `update`에서 **현재 로그인한 사용자의 uid와 기존 `GameProvider`가 쓰는 서비스의 uid를 비교**하도록 바꿈.
+
+- uid가 같으면 → 기존 `GameProvider` 그대로 반환
+- uid가 다르면 → 새 `GameProvider` 생성 (비로그인이면 `DriftGameService`, 로그인이면 `FirestoreGameService(uid)`)
+- 기존 서비스의 uid는 서비스가 `FirestoreGameService`일 때만 꺼내는 헬퍼(`_uidOf`)로 구함 (Drift면 `null`)
+
 ## 정리
 
 - 저장소 선택 로직은 `main`의 Provider 설정 한 곳에만 있고, `GameProvider`와 화면 코드는 저장소를 몰라도 됨.
 - 나중에 저장소를 하나 더 추가하고 싶다면 `game_service`를 상속하는 서비스를 새로 만들고 주입 조건만 추가하면 됨.
-- 참고로 로그인 시 로컬 데이터를 Firestore로 옮길지는 위 방식만으로는 처리되지 않으므로, 별도의 마이그레이션 로직이 필요함. (이 앱에서는 로그인 시 "계정에 저장 / 버리기 / 로그인 취소"를 선택하는 다이얼로그로 처리)
+- 참고로 로그인 시 로컬 데이터를 Firestore로 옮길지는 위 방식만으로는 처리되지 않으므로, 별도의 마이그레이션 로직이 필요함. (이 앱에서는 `LocalMigrationService`와 로그인 시 "계정에 저장 / 버리기 / 로그인 취소"를 선택하는 다이얼로그(`handleLocalDataOnLogin`)로 처리)

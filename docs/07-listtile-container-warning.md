@@ -1,4 +1,4 @@
-# 4. `ListTile`을 `Container`/`DecoratedBox`로 감쌀 때 뜨는 경고
+# 7. `ListTile`을 `Container`/`DecoratedBox`로 감쌀 때 뜨는 경고
 
 [← README로 돌아가기](../README.md#트러블슈팅)
 

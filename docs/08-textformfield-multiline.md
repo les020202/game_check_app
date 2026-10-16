@@ -1,4 +1,4 @@
-# 6. `TextFormField`에서 여러 줄 입력이 필요한 경우
+# 8. `TextFormField`에서 여러 줄 입력이 필요한 경우
 
 [← README로 돌아가기](../README.md#트러블슈팅)
 

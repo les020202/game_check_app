@@ -1,4 +1,4 @@
-# 2. `TableCalendar` 위젯 사용법 (특히 `onDaySelected`)
+# 5. `TableCalendar` 위젯 사용법 (특히 `onDaySelected`)
 
 [← README로 돌아가기](../README.md#트러블슈팅)
 
