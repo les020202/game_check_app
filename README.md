@@ -36,9 +36,6 @@ Android (Google Play Store)
 
 drift 2.32+ 기준 (sqlite3)
 
-- DB 파일 : 앱 문서 폴더의 `game_quest_checklist.sqlite` (백그라운드 isolate로 연결)
-- 스키마 버전 : 2
-
 ### Firebase 연동 (클라우드 DB, 인증, 스토리지)
 
 Firebase 프로젝트 연동 필요 (google-services.json 등 설정 파일 별도 추가)
@@ -48,8 +45,6 @@ Google 로그인의 `serverClientId`는 코드에 넣지 않고, `env.json` 파�
 ## 아키텍처
 
 ![아키텍처 다이어그램](images/architecture.png)
-
-> 다이어그램 원본: [`images/architecture.excalidraw`](images/architecture.excalidraw) — [excalidraw.com](https://excalidraw.com)에서 열어 수정할 수 있습니다.
 
 ### 구조
 
@@ -65,7 +60,7 @@ Google 로그인의 `serverClientId`는 코드에 넣지 않고, `env.json` 파�
   - `app_preferences.dart`: 온보딩 완료 여부 (shared_preferences)
 - widgets: 여러 페이지에서 공통으로 쓰이는 UI 컴포넌트 및 위젯을 한곳에 모아둔 폴더
 - dialogs: 다이얼로그를 한곳에 모아둔 폴더 (로컬 데이터 이전, 약관 동의, 게임 삭제, 템플릿 선택, 재인증)
-- services: 데이터 CRUD(로그인 전 Drift ↔ 로그인 후 Firestore 전환 포함)와 Firebase Auth / Storage, 로그인 마이그레이션, 회원탈퇴 데이터 삭제까지 전부 이 폴더에서 처리
+- services: 데이터 CRUD(로그인 전 Drift ↔ 로그인 후 Firestore 전환 포함)와 Firebase Auth / Storage, 로그인 마이그레이션, 회원탈퇴 데이터 삭제 등 전부 이 폴더에서 처리
 - local: Drift 스키마 전체 — 테이블 정의(tables/)와 커스텀 컬럼 변환기(converters/)로 구성
 - models: 도메인 모델과 enum
 - theme: 앱 공통 색상 정의 (상태 색: 완료=파랑, 부분=주황, 미완료=빨강, 없음=회색)
@@ -81,7 +76,7 @@ lib/
 │   └── converters/   # 커스텀 타입 컨버터 (예: List<String> ↔ JSON)
 ├── models/     # 도메인 모델
 ├── pages/      # 화면 위젯(View)
-├── services/   # 데이터 CRUD(Drift/Firestore) + 외부 동작 트리거 (Auth, Storage, 로그인 마이그레이션, 탈퇴)
+├── services/   # 데이터 CRUD(Drift/Firestore) + 외부 동작 트리거 (Auth, Storage, 로그인 마이그레이션, 탈퇴 등)
 ├── theme/      # 앱 공통 색상
 ├── utils/      # 유틸 함수 (퀘스트 기간 계산 등)
 ├── viewmodel/
@@ -94,7 +89,7 @@ lib/
 
 `GameService`라는 공통 인터페이스 아래에 구현체가 두 개 있습니다.
 
-- `DriftGameService`: 로그인 전, 기기 내부 SQLite에 저장
+- `DriftGameService`: 로그인 전, 기기 내부 Drift에 저장
 - `FirestoreGameService`: 로그인 후, 해당 uid의 데이터만 Firestore에 저장 / 조회
 
 `main.dart`의 `ChangeNotifierProxyProvider`가 로그인한 사용자의 **uid가 바뀔 때만** `GameProvider`를 새 구현체로 교체합니다. `GameProvider`와 화면 코드는 어느 저장소를 쓰는지 모르기 때문에, 게임 화면은 로그인 여부와 관계없이 같은 코드로 동작합니다.
@@ -103,7 +98,7 @@ lib/
 
 로그인 전(Drift)과 로그인 후(Firestore)는 동시에 원본 데이터로 취급하지 않으며, 로그인 시점에 로컬 데이터를 계정으로 업로드(또는 폐기)하는 마이그레이션 절차를 거쳐 저장소 주도권이 완전히 전환됩니다.
 
-- 기기에 데이터가 있으면 **계정에 저장 / 버리기 / 로그인 취소** 중 선택 (신규 가입이면 취소 없음)
+- 기기에 데이터가 있으면 **계정에 저장 / 버리기 / 로그인 취소** 중 선택
 - 계정에 저장: **먼저 업로드하고, 업로드가 성공한 뒤에** 로컬에 없는 클라우드 게임을 삭제 → 업로드 중 실패해도 기존 계정 데이터는 안전
 - 저장 · 버리기 후에는 로컬 DB를 비우고 클라우드 데이터를 다시 불러옴
 - 처리 중 실패하면 로그아웃하고 로컬 데이터는 그대로 보존
@@ -167,7 +162,7 @@ lib/
 </table>
 
 - 게임 설정 입력 (새 게임 추가 / 기존 게임 수정 두 가지 모드)
-  - 이름, 타입(RPG: 캐릭터 여러 개 / 모바일 게임: 계정 1개)
+  - 이름, 타입(RPG / 모바일 게임)
   - 초기화 시간, 주간 초기화 요일
   - 공통 일일 퀘스트
   - 캐릭터(칩에서 이름 편집 · 추가 · 삭제)와 캐릭터별 주간 / 월간 퀘스트 및 목표(마감일 · 메모)
@@ -230,7 +225,7 @@ lib/
 - 닉네임, 이메일, 비밀번호 입력 및 약관 동의 후 가입
   - 약관: 만 14세 이상 · 이용약관 · 개인정보 수집 및 이용(필수), 마케팅 정보 수신(선택)
   - 각 약관 옆 화살표로 약관 상세 보기
-- 가입 후 약관 동의 정보를 저장하고, 기기에 데이터가 있으면 계정으로 이전할지 선택
+- 가입 후 약관 동의 정보를 저장하고, 바로 로그인 되어 기기에 데이터가 있으면 계정으로 이전할지 선택
 
 ### 마이 페이지
 
@@ -241,7 +236,7 @@ lib/
 - 연필 버튼으로 닉네임 편집 모드 전환 후 변경
 - 자주 묻는 질문, 고객센터, 이용약관 페이지로 이동
 - 이메일 인증 메일 발송, 로그인 / 로그아웃
-- 회원 탈퇴: 재인증(이메일 계정은 비밀번호, 구글 계정은 구글 재로그인) 후 문의 · 게임 데이터 · 약관 동의 · 프로필 이미지를 먼저 지우고 계정 삭제
+- 회원 탈퇴: 재인증(이메일 계정은 비밀번호, 구글 계정은 구글 재로그인) 후 문의 · 게임 데이터 · 약관 동의 · 프로필 이미지 등 모든 데이터를 먼저 지우고 계정 삭제
 
 ### 그 외 화면
 

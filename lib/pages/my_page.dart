@@ -1,4 +1,4 @@
-//filename:profile_page.dart
+//filename:my_page.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -334,7 +334,7 @@ class _MyPageState extends State<MyPage> {
                                             showSnackBar(context, '$error');
                                           });
                                     } else {
-                                      context.go('my_page/login_page');
+                                      context.go('/my_page/login_page');
                                     }
                                   },
                                   child: Text(
@@ -353,10 +353,18 @@ class _MyPageState extends State<MyPage> {
                                       return;
                                     }
                                     if (authProvider.isGoogleLogin) {
-                                      await authProvider
-                                          .deleteAccountWithGoogle();
-                                      if (context.mounted) {
-                                        showSnackBar(context, '탈퇴처리가 완료되었습니다.');
+                                      try {
+                                        await authProvider
+                                            .deleteAccountWithGoogle();
+                                        if (context.mounted) {
+                                          showSnackBar(
+                                            context,
+                                            '탈퇴처리가 완료되었습니다.',
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted)
+                                          showSnackBar(context, '$e');
                                       }
                                       return;
                                     }
