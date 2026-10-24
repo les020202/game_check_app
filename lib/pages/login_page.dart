@@ -147,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                           showSnackBar(context, '로그인이 되었습니다.');
                           context.go('/game_main_page');
                         } catch (error) {
-                          if (mounted) showSnackBar(context, '$error');
+                          if (mounted) showSnackBar(context, errorText(error));
                         }
                       },
                       backgroundColors: colorScheme.primary,
@@ -197,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
                           showSnackBar(context, '로그인이 되었습니다.');
                           context.go('/game_main_page');
                         } catch (error) {
-                          if (context.mounted) showSnackBar(context, '$error');
+                          if (context.mounted) showSnackBar(context, errorText(error));
                         }
                       },
                       backgroundColors: colorScheme.onPrimary,

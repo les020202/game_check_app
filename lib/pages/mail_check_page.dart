@@ -89,7 +89,7 @@ class MailCheckPage extends StatelessWidget {
                         if (context.mounted)
                           showSnackBar(context, '비밀번호 재설정 이메일이 전송되었습니다.');
                       } catch (error) {
-                        if (context.mounted) showSnackBar(context, '$error');
+                        if (context.mounted) showSnackBar(context, errorText(error));
                       }
                     },
                     child: Text(

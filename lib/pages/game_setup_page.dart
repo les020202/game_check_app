@@ -20,6 +20,10 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_dotted_button.dart';
 import '../theme/app_colors.dart';
+import '../utils/show_snackbar.dart';
+
+const int kMaxQuestPerType = 10;
+const int kMaxCharacters = 10;
 
 class GameSetupPage extends StatefulWidget {
   final int? gamesIndex;
@@ -390,6 +394,18 @@ class _GameSetupPageState extends State<GameSetupPage> {
     if (context.mounted) context.go('/game_main_page');
   }
 
+  void _addQuest(
+    List<EditableQuestItem> list,
+    EditableQuestItem item,
+    String label,
+  ) {
+    if (list.length >= kMaxQuestPerType) {
+      showSnackBar(context, '$label은(는) 최대 $kMaxQuestPerType개까지 추가할 수 있어요.');
+      return;
+    }
+    setState(() => list.add(item));
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -443,13 +459,13 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         children: [
                           _typeCard(
                             'RPG',
-                            '캐릭터 여러 개',
+                            '캐릭터 육성형 게임',
                             isTypeChecked[0],
                             () => setState(() => isTypeChecked = [true, false]),
                           ),
                           _typeCard(
                             '모바일 게임',
-                            '계정 1개',
+                            '모바일 플랫폼 게임',
                             isTypeChecked[1],
                             () => setState(() => isTypeChecked = [false, true]),
                           ),
@@ -574,14 +590,15 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         ),
                       if (!isDailyChecked)
                         CustomDottedButton(
-                          customText: '+ 일일 퀘스트 추가',
+                          customText:
+                              '+ 일일 퀘스트 추가 (${dailyQuests.length}/$kMaxQuestPerType)',
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           height: 44,
-                          onPressed: () {
-                            setState(() {
-                              dailyQuests.add(EditableQuestItem(name: ''));
-                            });
-                          },
+                          onPressed: () => _addQuest(
+                            dailyQuests,
+                            EditableQuestItem(name: ''),
+                            '일일 퀘스트',
+                          ),
                         ),
                     ],
                   ),
@@ -617,15 +634,15 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           '주간 퀘스트를 입력하세요.',
                         ),
                         CustomDottedButton(
-                          customText: '+ 주간 퀘스트 추가',
+                          customText:
+                              '+ 주간 퀘스트 추가 (${weeklyQuestsByCharacter[selectedCharacterId!]!.length}/$kMaxQuestPerType)',
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           height: 44,
-                          onPressed: () {
-                            setState(() {
-                              weeklyQuestsByCharacter[selectedCharacterId!]!
-                                  .add(EditableQuestItem(name: ''));
-                            });
-                          },
+                          onPressed: () => _addQuest(
+                            weeklyQuestsByCharacter[selectedCharacterId!]!,
+                            EditableQuestItem(name: ''),
+                            '주간 퀘스트',
+                          ),
                         ),
 
                         Text(
@@ -640,15 +657,15 @@ class _GameSetupPageState extends State<GameSetupPage> {
                           '월간 퀘스트를 입력하세요.',
                         ),
                         CustomDottedButton(
-                          customText: '+ 월간 퀘스트 추가',
+                          customText:
+                              '+ 월간 퀘스트 추가 (${monthlyQuestsByCharacter[selectedCharacterId!]!.length}/$kMaxQuestPerType)',
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           height: 44,
-                          onPressed: () {
-                            setState(() {
-                              monthlyQuestsByCharacter[selectedCharacterId!]!
-                                  .add(EditableQuestItem(name: ''));
-                            });
-                          },
+                          onPressed: () => _addQuest(
+                            monthlyQuestsByCharacter[selectedCharacterId!]!,
+                            EditableQuestItem(name: ''),
+                            '월간 퀘스트',
+                          ),
                         ),
 
                         Text(
@@ -659,21 +676,20 @@ class _GameSetupPageState extends State<GameSetupPage> {
                         ),
                         ...getTargetlyInputText(colorScheme),
                         CustomDottedButton(
-                          customText: '+ 목표 추가',
+                          customText:
+                              '+ 목표 추가 (${goalQuestsByCharacter[selectedCharacterId!]!.length}/$kMaxQuestPerType)',
                           padding: const EdgeInsets.symmetric(vertical: 6),
                           height: 44,
-                          onPressed: () {
-                            setState(() {
-                              goalQuestsByCharacter[selectedCharacterId!]!.add(
-                                EditableQuestItem(
-                                  name: '',
-                                  memo: '',
-                                  dueMonth: DateTime.now().month,
-                                  dueDay: DateTime.now().day,
-                                ),
-                              );
-                            });
-                          },
+                          onPressed: () => _addQuest(
+                            goalQuestsByCharacter[selectedCharacterId!]!,
+                            EditableQuestItem(
+                              name: '',
+                              memo: '',
+                              dueMonth: DateTime.now().month,
+                              dueDay: DateTime.now().day,
+                            ),
+                            '목표',
+                          ),
                         ),
                       ],
                     ],
@@ -784,7 +800,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
     return [
       for (int i = 0; i < list.length; i++)
         TextFormField(
-          key: ValueKey('${keyPrefix}_${list[i].id ?? 'new_$i'}'),
+          key: ValueKey('${keyPrefix}_${list[i].uiKey}'),
           initialValue: list[i].name,
           onChanged: (String name) => list[i].name = name,
           decoration: _inputDecoration(
@@ -842,7 +858,7 @@ class _GameSetupPageState extends State<GameSetupPage> {
     for (int i = 0; i < currentList.length; i++) {
       final goal = currentList[i];
       final keySuffix =
-          '${_templateGeneration}_${currentCharacterId}_${goal.id ?? 'new_$i'}';
+          '${_templateGeneration}_${currentCharacterId}_${goal.uiKey}';
       targetQuestWidget.add(
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -1080,6 +1096,13 @@ class _GameSetupPageState extends State<GameSetupPage> {
                   height: 36,
                   child: ElevatedButton(
                     onPressed: () {
+                      if (newCharacterIds.length >= kMaxCharacters) {
+                        showSnackBar(
+                          context,
+                          '캐릭터는 최대 $kMaxCharacters개까지 추가할 수 있어요.',
+                        );
+                        return;
+                      }
                       setState(() {
                         final newId = uuid.v4();
                         newCharacterIds.add(newId);

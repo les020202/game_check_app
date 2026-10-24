@@ -11,33 +11,33 @@ class FirebaseAuthService {
   }
 
   String? _resolvePhotoUrl(User u) {
-  final top = u.photoURL;
+    final top = u.photoURL;
 
-  // 직접 등록한 이미지(내 Storage URL)면 그대로 사용
-  if (top != null && top.contains('firebasestorage.googleapis.com')) {
-    return top;
-  }
-
-  // 아니면 구글 제공자 정보의 최신 사진 사용
-  for (final p in u.providerData) {
-    if (p.providerId == 'google.com' && p.photoURL != null) {
-      return p.photoURL;
+    // 직접 등록한 이미지(내 Storage URL)면 그대로 사용
+    if (top != null && top.contains('firebasestorage.googleapis.com')) {
+      return top;
     }
-  }
-  return top; // 이메일 가입자 등: 없으면 null → 앱 기본 이미지
-}
 
-AppUser? _toAppUser(User? u) {
-  if (u == null) return null;
-  return AppUser(
-    id: u.uid,
-    nickname: u.displayName ?? '',
-    email: u.email ?? '',
-    profileImageUrl: _resolvePhotoUrl(u),
-    emailVerified: u.emailVerified,
-    createdAt: u.metadata.creationTime,
-  );
-}
+    // 아니면 구글 제공자 정보의 최신 사진 사용
+    for (final p in u.providerData) {
+      if (p.providerId == 'google.com' && p.photoURL != null) {
+        return p.photoURL;
+      }
+    }
+    return top; // 이메일 가입자 등: 없으면 null → 앱 기본 이미지
+  }
+
+  AppUser? _toAppUser(User? u) {
+    if (u == null) return null;
+    return AppUser(
+      id: u.uid,
+      nickname: u.displayName ?? '',
+      email: u.email ?? '',
+      profileImageUrl: _resolvePhotoUrl(u),
+      emailVerified: u.emailVerified,
+      createdAt: u.metadata.creationTime,
+    );
+  }
 
   AppUser? get currentUser => _toAppUser(_auth.currentUser);
 
@@ -62,7 +62,11 @@ AppUser? _toAppUser(User? u) {
         password: password,
       );
       await _auth.currentUser?.updateDisplayName(nickName);
-      await _auth.currentUser?.sendEmailVerification();
+      try {
+        await _auth.currentUser?.sendEmailVerification();
+      } catch (_) {
+        // 발송 실패해도 가입은 성공 처리. 마이페이지의 '이메일 보내기'로 다시 보낼 수 있음
+      }
     } on FirebaseAuthException catch (error) {
       switch (error.code) {
         case 'weak-password':
@@ -177,20 +181,21 @@ AppUser? _toAppUser(User? u) {
     }
   }
 
-  Future<void> sendVerificationEmail() async {
+  Future<bool> sendVerificationEmail() async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('로그인이 필요합니다.');
 
     await user.reload(); // 최신 인증 상태로 갱신
-    if (_auth.currentUser!.emailVerified) {
-      throw Exception('이미 이메일 인증이 완료되었습니다.'); // try 밖이라 안 덮어씀
-    }
+    if (_auth.currentUser!.emailVerified) return false; // 이미 인증됨 (에러 아님)
 
     try {
       await _auth.currentUser!.sendEmailVerification();
+      return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'too-many-requests') {
-        throw Exception('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+        throw Exception(
+          '인증 메일을 너무 자주 요청했어요. 이미 받은 메일을 확인하고(스팸함 포함) 잠시 후 다시 시도해주세요.',
+        );
       }
       throw Exception('인증 메일 전송에 실패했습니다.');
     } catch (_) {

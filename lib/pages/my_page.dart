@@ -15,12 +15,13 @@ class MyPage extends StatefulWidget {
   State<MyPage> createState() => _MyPageState();
 }
 
-class _MyPageState extends State<MyPage> {
+class _MyPageState extends State<MyPage> with WidgetsBindingObserver {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
 
   bool _isEditing = false;
   bool _isUploading = false;
+  bool _isSendingMail = false;
 
   List<List<dynamic>> menu = [
     // [
@@ -41,6 +42,37 @@ class _MyPageState extends State<MyPage> {
     ],
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshVerification());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // 앱이 백그라운드에서 다시 앞으로 나왔을 때 (메일 앱/브라우저에서 돌아옴)
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refreshVerification();
+  }
+
+  // 로그인했지만 아직 미인증일 때만 서버에서 최신 상태를 다시 받아옴
+  Future<void> _refreshVerification() async {
+    if (!mounted) return;
+    final auth = context.read<FirebaseAuthProvider>();
+    if (!auth.isLoggedIn || (auth.user?.emailVerified ?? true)) return;
+    try {
+      await auth.refreshUser();
+    } catch (_) {
+      // 네트워크 문제 등은 조용히 무시
+    }
+  }
+
   Future<void> _pickImage() async {
     setState(() => _isUploading = true);
     try {
@@ -52,7 +84,7 @@ class _MyPageState extends State<MyPage> {
         );
       }
     } catch (e) {
-      if (mounted) showSnackBar(context, '$e');
+      if (mounted) showSnackBar(context, errorText(e));
     }
     if (mounted) setState(() => _isUploading = false);
   }
@@ -158,7 +190,10 @@ class _MyPageState extends State<MyPage> {
                                                     .deleteProfileImage();
                                               } catch (e) {
                                                 if (context.mounted)
-                                                  showSnackBar(context, '$e');
+                                                  showSnackBar(
+                                                    context,
+                                                    errorText(e),
+                                                  );
                                               }
                                             },
                                           ),
@@ -240,7 +275,10 @@ class _MyPageState extends State<MyPage> {
                                             showSnackBar(context, '수정 되었습니다.');
                                           })
                                           .catchError((error) {
-                                            showSnackBar(context, '$error');
+                                            showSnackBar(
+                                              context,
+                                              errorText(error),
+                                            );
                                           });
                                     }
                                   }
@@ -292,25 +330,42 @@ class _MyPageState extends State<MyPage> {
                                     ),
                                   ),
                                   TextButton(
-                                    onPressed: () async {
-                                      try {
-                                        await authProvider
-                                            .sendVerificationEmail();
-                                        if (context.mounted) {
-                                          showSnackBar(
-                                            context,
-                                            '인증 이메일이 다시 전송되었습니다.',
-                                          );
-                                        }
-                                      } catch (e) {
-                                        if (context.mounted)
-                                          showSnackBar(context, '$e');
-                                      }
-                                    },
+                                    onPressed: _isSendingMail
+                                        ? null
+                                        : () async {
+                                            setState(
+                                              () => _isSendingMail = true,
+                                            );
+                                            try {
+                                              final sent = await authProvider
+                                                  .sendVerificationEmail();
+                                              if (context.mounted) {
+                                                showSnackBar(
+                                                  context,
+                                                  sent
+                                                      ? '인증 이메일이 전송되었습니다.'
+                                                      : '이미 이메일 인증이 완료되었어요.',
+                                                );
+                                              }
+                                            } catch (e) {
+                                              if (context.mounted)
+                                                showSnackBar(
+                                                  context,
+                                                  errorText(e),
+                                                );
+                                            } finally {
+                                              if (mounted)
+                                                setState(
+                                                  () => _isSendingMail = false,
+                                                );
+                                            }
+                                          },
                                     child: Text(
                                       '이메일 보내기',
                                       style: textTheme.titleSmall?.copyWith(
-                                        color: colorScheme.primary,
+                                        color: _isSendingMail
+                                            ? Colors.grey
+                                            : colorScheme.primary,
                                       ),
                                     ),
                                   ),
@@ -331,7 +386,10 @@ class _MyPageState extends State<MyPage> {
                                             showSnackBar(context, '로그아웃되었습니다.');
                                           })
                                           .catchError((error) {
-                                            showSnackBar(context, '$error');
+                                            showSnackBar(
+                                              context,
+                                              errorText(error),
+                                            );
                                           });
                                     } else {
                                       context.go('/my_page/login_page');
@@ -364,7 +422,7 @@ class _MyPageState extends State<MyPage> {
                                         }
                                       } catch (e) {
                                         if (context.mounted)
-                                          showSnackBar(context, '$e');
+                                          showSnackBar(context, errorText(e));
                                       }
                                       return;
                                     }

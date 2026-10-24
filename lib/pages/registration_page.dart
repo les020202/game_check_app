@@ -9,6 +9,7 @@ import '../utils/show_snackbar.dart';
 import '../viewmodel/provider/firebase_auth_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../dialogs/local_data_dialog.dart';
+import '../utils/email_validator.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -99,6 +100,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         fillColor: colorScheme.onPrimary,
                         hintText: 'example@example.com',
                         hintStyle: TextStyle(color: Colors.grey.shade500),
+                        helperText: '*영문, 숫자, 특수문자만 입력할 수 있어요',
+                        helperStyle: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.primary,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: Colors.grey),
@@ -106,17 +111,18 @@ class _RegistrationPageState extends State<RegistrationPage> {
                         floatingLabelBehavior: FloatingLabelBehavior.always,
                       ),
                       keyboardType: TextInputType.emailAddress,
+                      inputFormatters: emailInputFormatters,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return '이메일을 입력하세요';
                         }
-                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                          return '유효한 이메일을 입력하세요';
+                        if (!isValidEmail(value)) {
+                          return '영문, 숫자로 된 유효한 이메일을 입력하세요';
                         }
                         return null;
                       },
                       onSaved: (value) {
-                        email = value;
+                        email = value?.trim();
                       },
                     ),
                     SizedBox(height: 20),
@@ -266,10 +272,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
                               ); // 실패 시 이미 signOut됨
                               return;
                             }
-                            showSnackBar(context, '회원가입이 완료되었습니다.');
+                            showSnackBar(context, '회원가입이 완료되었습니다. 인증 메일을 보냈으니 메일함을 확인해주세요.');
                             context.go('/my_page/login_page');
                           } catch (error) {
-                            if (mounted) showSnackBar(context, '$error');
+                            if (mounted) showSnackBar(context, errorText(error));
                           }
                         },
                         style: ElevatedButton.styleFrom(

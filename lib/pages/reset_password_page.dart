@@ -106,7 +106,7 @@ class ResetPasswordPage extends StatelessWidget {
                             '/my_page/login_page/reset_password_page/mail_check_page/$email',
                           );
                         } catch (error) {
-                          if (context.mounted) showSnackBar(context, '$error');
+                          if (context.mounted) showSnackBar(context, errorText(error));
                         }
                       },
                     ),

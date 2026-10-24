@@ -7,32 +7,50 @@ import '../../models/app_user.dart';
 import '../../services/firebase_auth_service.dart';
 import '../../services/firebase_storage_service.dart';
 import '../../services/user_data_service.dart';
+
 class FirebaseAuthProvider extends ChangeNotifier {
   final FirebaseAuthService _authService;
   final FirebaseStorageService? _storageService;
   final UserDataService _userDataService = UserDataService();
-  
+
   AppUser? _user;
   StreamSubscription<AppUser?>? _sub;
+  bool _verificationChecked = false; // 같은 로그인 동안 한 번만 갱신
 
   FirebaseAuthProvider(this._authService, {this._storageService}) {
-    _user = _authService.currentUser; // 앱 시작 시 이미 로그인된 상태를 바로 반영
+    _user = _authService.currentUser;
     _sub = _authService.userChanges.listen((user) {
       _user = user;
       notifyListeners();
+      _refreshOnceIfUnverified(); 
     });
+    _refreshOnceIfUnverified();
+  }
+
+  // 미인증 사용자에게만, 로그인 한 번당 한 번 서버의 최신 상태를 가져옴
+  void _refreshOnceIfUnverified() {
+    final u = _user;
+    if (u == null) {
+      _verificationChecked = false; // 로그아웃하면 다음 로그인에서 다시 확인
+      return;
+    }
+    if (_verificationChecked) return;
+    _verificationChecked = true;
+    if (!u.emailVerified) {
+      refreshUser().catchError((_) {});
+    }
   }
 
   AppUser? get user => _user;
   bool get isLoggedIn => _user != null;
-  
-  bool get isGoogleLogin {
-  final user = FirebaseAuth.instance.currentUser;
 
-  return user?.providerData.any(
-        (provider) => provider.providerId == 'google.com',
-      ) ??
-      false;
+  bool get isGoogleLogin {
+    final user = FirebaseAuth.instance.currentUser;
+
+    return user?.providerData.any(
+          (provider) => provider.providerId == 'google.com',
+        ) ??
+        false;
   }
 
   @override
@@ -92,11 +110,15 @@ class FirebaseAuthProvider extends ChangeNotifier {
     await refreshUser();
   }
 
-  Future<void> sendVerificationEmail() async {
+  Future<bool> sendVerificationEmail() async {
     try {
-      await _authService.sendVerificationEmail();
+      return await _authService.sendVerificationEmail();
     } finally {
-      await refreshUser(); // 성공/실패와 상관없이 최신 인증 상태 반영
+      try {
+        await refreshUser(); // 성공/실패와 상관없이 최신 인증 상태 반영
+      } catch (_) {
+        // 상태 갱신 실패가 메일 발송 결과를 덮어쓰지 않도록 무시
+      }
     }
   }
 
@@ -110,8 +132,9 @@ class FirebaseAuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> signInWithGoogle() => _authService.signInWithGoogle(); //소셜로그인 서비스
-  
+  Future<void> signInWithGoogle() =>
+      _authService.signInWithGoogle(); //소셜로그인 서비스
+
   Future<void> deleteAccountWithGoogle() async {
     await _authService.reauthenticateWithGoogle();
     await _wipeDataAndDeleteUser();
