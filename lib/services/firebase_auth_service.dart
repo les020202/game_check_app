@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../models/app_user.dart';
 
@@ -79,7 +80,8 @@ class FirebaseAuthService {
           errorMessage = '유효하지 않은 이메일입니다.';
           break;
         default:
-          errorMessage = error.message ?? '알 수 없는 에러 발생';
+          debugPrint('signUpWithEmail error: ${error.code} ${error.message}');
+          errorMessage = '알 수 없는 에러 발생';
       }
     } catch (error) {
       errorMessage = '알 수 없는 에러 발생';
@@ -111,7 +113,8 @@ class FirebaseAuthService {
           errorMessage = '비밀번호가 올바르지 않거나 유효하지 않은 이메일입니다.';
           break;
         default:
-          errorMessage = error.message ?? '알 수 없는 에러 발생';
+          debugPrint('signInWithEmail error: ${error.code} ${error.message}');
+          errorMessage = '알 수 없는 에러 발생';
       }
     } catch (error) {
       errorMessage = '알 수 없는 에러 발생';
@@ -126,7 +129,8 @@ class FirebaseAuthService {
       await _auth.signOut();
       await GoogleSignIn.instance.signOut(); //소셜 로그아웃
     } catch (e) {
-      throw Exception('$e');
+      debugPrint('signOut error: $e');
+      throw Exception('로그아웃에 실패했습니다.');
     }
   }
 
@@ -147,7 +151,8 @@ class FirebaseAuthService {
           errorMessage = '유효하지 않은 이메일입니다.';
           break;
         default:
-          errorMessage = error.message ?? '알 수 없는 에러 발생';
+          debugPrint('resetPassword error: ${error.code} ${error.message}');
+          errorMessage = '알 수 없는 에러 발생';
       }
     } catch (error) {
       errorMessage = '알 수 없는 에러 발생';
@@ -161,7 +166,8 @@ class FirebaseAuthService {
     try {
       await _auth.currentUser?.updateDisplayName(nickName);
     } catch (e) {
-      throw Exception('수정 실패:$e');
+      debugPrint('updateName error: $e');
+      throw Exception('수정에 실패했습니다.');
     }
   }
 
@@ -169,7 +175,8 @@ class FirebaseAuthService {
     try {
       await _auth.currentUser?.updatePhotoURL(url);
     } catch (e) {
-      throw Exception('수정 실패:$e');
+      debugPrint('updatePhotoUrl error: $e');
+      throw Exception('수정에 실패했습니다.');
     }
   }
 
@@ -177,7 +184,8 @@ class FirebaseAuthService {
     try {
       await _auth.currentUser?.updatePhotoURL(null);
     } catch (e) {
-      throw Exception('수정 실패:$e');
+      debugPrint('deletePhotoUrl error: $e');
+      throw Exception('수정에 실패했습니다.');
     }
   }
 
@@ -220,10 +228,12 @@ class FirebaseAuthService {
           errorMessage = '비밀번호가 올바르지 않습니다.';
           break;
         default:
-          errorMessage = '재인증 중 오류 발생: ${error.message}';
+          debugPrint('reauthenticateWithPassword error: ${error.code} ${error.message}');
+          errorMessage = '재인증 중 오류가 발생했습니다.';
       }
     } catch (error) {
-      errorMessage = '탈퇴과정에 문제가 있습니다.';
+      debugPrint('reauthenticateWithPassword error: $error');
+      errorMessage = '재인증 중 오류가 발생했습니다.';
     }
     if (errorMessage != null) {
       throw Exception(errorMessage);
@@ -245,7 +255,8 @@ class FirebaseAuthService {
       if (e.code == GoogleSignInExceptionCode.canceled) {
         throw Exception('로그인이 취소되었습니다.');
       }
-      throw Exception('구글 로그인 중 오류가 발생했습니다.$e');
+      debugPrint('GoogleSignInException error: $e');
+      throw Exception('구글 로그인 중 오류가 발생했습니다.');
     } on FirebaseAuthException catch (error) {
       String errorMessage;
       switch (error.code) {
@@ -253,11 +264,13 @@ class FirebaseAuthService {
           errorMessage = '이미 다른 방법으로 가입된 이메일입니다. 이메일 로그인을 이용해주세요.';
           break;
         default:
-          errorMessage = error.message ?? '구글 로그인 중 오류가 발생했습니다.';
+          debugPrint('signInWithGoogle error: ${error.code} ${error.message}');
+          errorMessage = '구글 로그인 중 오류가 발생했습니다.';
       }
       throw Exception(errorMessage);
     } catch (e) {
-      throw Exception('구글 로그인 중 오류가 발생했습니다.$e');
+      debugPrint('signInWithGoogle error: $e');
+      throw Exception('구글 로그인 중 오류가 발생했습니다.');
     }
   }
 
@@ -271,7 +284,8 @@ class FirebaseAuthService {
       );
       await _auth.currentUser?.reauthenticateWithCredential(credential);
     } catch (e) {
-      throw Exception('회원탈퇴 중 오류가 발생했습니다.$e');
+      debugPrint('reauthenticateWithGoogle error: $e');
+      throw Exception('회원탈퇴 중 오류가 발생했습니다.');
     }
   }
 
@@ -279,6 +293,7 @@ class FirebaseAuthService {
     try {
       await _auth.currentUser?.delete();
     } catch (e) {
+      debugPrint('deleteCurrentUser error: $e');
       throw Exception('탈퇴과정에 문제가 있습니다.');
     }
   }

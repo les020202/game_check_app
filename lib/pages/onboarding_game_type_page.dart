@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../models/game_type.dart';
+import '../utils/show_snackbar.dart';
 import '../viewmodel/provider/game_template_provider.dart';
 import '../widgets/custom_button.dart';
 
@@ -9,11 +10,11 @@ class OnboardingGameTypePage extends StatelessWidget {
   const OnboardingGameTypePage({super.key});
 
   static const List<List<String>> _labels = [
-    ['RPG', '여러 캐릭터로 육성하는 게임'],
-    ['모바일 게임', '계정 하나로 플레이하는 게임'],
+    ['RPG', '캐릭터 육성형 게임'],
+    ['모바일 게임', '모바일 플랫폼 게임'],
   ];
   static const List<GameType> _values = [GameType.rpg, GameType.mobile];
-  
+
   @override
   Widget build(BuildContext context) {
     TextTheme textTheme = Theme.of(context).textTheme;
@@ -148,9 +149,9 @@ class OnboardingGameTypePage extends StatelessWidget {
                   } catch (e, st) {
                     debugPrint('온보딩 1→2 이동 실패: $e\n$st');
                     if (context.mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('에러: $e')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('에러: ${errorText(e)}')),
+                      );
                     }
                   }
                 },

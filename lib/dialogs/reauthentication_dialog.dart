@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/show_snackbar.dart';
+
 /// 탈퇴 성공 시 true, 취소 시 false/null
 Future<bool?> showReauthenticationDialog(
   BuildContext context,
@@ -49,7 +51,7 @@ class _ReauthenticationDialogState extends State<_ReauthenticationDialog> {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        _errorMessage = errorText(e);
       });
     }
   }
